@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply text-terrii-text-primary;
+    font-family: 'Nunito', 'Inter', system-ui, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+  
+  h1 { @apply text-3xl md:text-4xl; }
+  h2 { @apply text-2xl md:text-3xl; }
+  h3 { @apply text-xl md:text-2xl; }
+  
+  body {
+    @apply bg-white min-h-screen;
+  }
+
+  /* Override any potential default font in index.css */
+  * {
+    font-family: 'Nunito', 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-terrii-blue px-4 py-2 rounded-md font-medium hover:bg-terrii-blue/80 transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-terrii-green px-4 py-2 rounded-md font-medium hover:bg-terrii-green/80 transition-colors;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-terrii p-4;
+  }
+
+  /* Custom search and select styling */
+  .input-search {
+    @apply pl-10 border border-gray-200 rounded-md h-10 text-terrii-text-primary;
+  }
+
+  .select-terrii {
+    @apply border border-gray-200 rounded-md text-terrii-text-primary;
+  }
+}
