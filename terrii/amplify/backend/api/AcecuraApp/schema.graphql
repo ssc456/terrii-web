@@ -1,0 +1,692 @@
+type MyChats @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  unreadMessages: Boolean
+  lastMessageDateTime: AWSDateTime
+  lastMessage: String
+  chatName: String
+  User: User @hasOne
+  ChatRoom: ChatRoom @hasOne
+  chatImageS3URL: String
+}
+
+type DebugInfo @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  user: String
+  Logging: String
+  Test: String
+}
+
+type MyFriends @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  status: String
+  Users: [User] @manyToMany(relationName: "MyFriendsUser")
+}
+
+enum ExpoNotificationType {
+  COMMUNITY_LIKE
+  COMMUNITY_COMMENT
+  GROUP_INVITE
+  GUIDANCE_ARTICLE
+  MESSAGE
+  MANUAL
+}
+
+type ExpoNotifications @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  title: String
+  description: String
+  seen: String
+  data: AWSJSON
+  User: User @hasOne
+  CommunityPost: CommunityPost @hasOne
+  CommunityComment: CommunityComment @hasOne
+  CommunityLikes: CommunityLikes @hasOne
+  Guidance: Guidance @hasOne
+  NotificationType: ExpoNotificationType
+}
+
+type SystemInfo @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String
+  value: String
+  options: String
+}
+
+type CareHomes @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  LocationID: String
+  Name: String
+  CareHome: String
+  Type: String
+  Category: String
+  Address1: String
+  Address2: String
+  City: String
+  PostCode: String
+  LocalAuthority: String
+  Region: String
+  ServiceGroup: String
+  CQCURL: String
+  ProviderID: String
+  ProviderName: String
+  RatingCaring: String
+  RatingEffective: String
+  RatingResponsive: String
+  RatingSafe: String
+  RatingWellLed: String
+  RatingOverall: String
+  NHSRegion: String
+  ReportDate: AWSDateTime
+  iRatingCaring: Int
+  iRatingEffective: Int
+  iRatingResponsive: Int
+  iRatingSafe: Int
+  iRatingWellLed: Int
+  iRatingOverall: Int
+}
+
+type UserExtendedInfo @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  field: String
+  value: String
+  userID: ID! @index(name: "byUser")
+}
+
+enum CommunityNotificationType {
+  GROUP_INVITE
+  POST_LIKE
+  POST_COMMENT
+  GROUP_POST
+}
+
+type CommunityUserNotifications @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  NotificationType: CommunityNotificationType
+  User: User @hasOne
+  CommunityLikes: CommunityLikes @hasOne
+  CommunityComment: CommunityComment @hasOne
+  seen: Boolean
+  CommunityGroup: CommunityGroup @hasOne
+}
+
+type QuestionGroupTypes @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String
+  iconS3URL: String
+}
+
+enum EnumStatuses {
+  DRAFT
+  PUBLISHED
+  TESTING
+  SCHEDULED
+}
+
+enum EnumCommunityUserGroupRoles {
+  USER
+  GUEST
+  ADMIN
+  OWNER
+}
+
+type CommunityUserGroupRoles @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  userGroupRole: EnumCommunityUserGroupRoles
+  User: User @hasOne
+  CommunityGroup: CommunityGroup @hasOne
+}
+
+type CommunityGroup @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  CommunityPosts: [CommunityPost] @hasMany(indexName: "byCommunityGroup", fields: ["id"])
+  name: String
+  description: String
+  imageS3Key: String
+  headerS3Key: String
+}
+
+type CommunityPostPollVotes @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  User: User @hasOne
+  communitypostpollID: ID! @index(name: "byCommunityPostPoll")
+}
+
+type CommunityPostPoll @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  text: String
+  CommunityPostPollVotes: [CommunityPostPollVotes] @hasMany(indexName: "byCommunityPostPoll", fields: ["id"])
+  communitypostID: ID! @index(name: "byCommunityPost")
+}
+
+type CommunityLikes @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  User: User @hasOne
+  communitypostID: ID! @index(name: "byCommunityPost")
+}
+
+type CommunityComment @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  text: String
+  likes: String
+  User: User @hasOne
+  communitypostID: ID! @index(name: "byCommunityPost")
+  communityCommentUserId: String
+  createdAt: AWSDateTime
+  parentCommentID: ID @index(name: "byParentComment")
+  replies: [CommunityComment] @hasMany(indexName: "byParentComment", fields: ["id"])
+  CommunityCommentLikes: [CommunityCommentLikes] @hasMany(indexName: "byComment", fields: ["id"])
+}
+
+type CommunityPost @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  text: String
+  mediaS3Key: String
+  dateTime: AWSDateTime!
+  User: User @hasOne
+  CommunityComments: [CommunityComment] @hasMany(indexName: "byCommunityPost", fields: ["id"])
+  CommunityLikes: [CommunityLikes] @hasMany(indexName: "byCommunityPost", fields: ["id"])
+  CommunityPostPoll: [CommunityPostPoll] @hasMany(indexName: "byCommunityPost", fields: ["id"])
+  communitygroupID: ID! @index(name: "byCommunityGroup", queryField: "communityPostsByDate", sortKeyFields: ["dateTime"])
+  Guidance: Guidance @hasOne
+  needsModeration: Boolean
+  moderationLabel: String
+  moderationScore: Float
+  isScheduled: Boolean
+}
+
+enum QuestionGroupType {
+  ROADMAP
+  GENERAL
+}
+
+type CalendarItemType @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String
+  colour: String
+  deleted: Boolean
+}
+
+type RoadMapItems @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  text: String
+  description: String
+}
+
+type ManualNotificationsUser @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  User: User @hasOne
+  seen: Boolean
+}
+
+type ManualNotifications @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  title: String
+  shortText: String
+  Guidance: Guidance @hasOne
+  ManualNotificationsUser: ManualNotificationsUser @hasOne
+}
+
+type QuestionAnswersUsers @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  User: User @hasOne
+  QuestionAnswers: QuestionAnswers @hasOne
+  Questions: Questions @hasOne
+  freeText: String
+  complete: Boolean
+}
+
+type QuestionAnswers @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  answer: String
+  helpText: String
+  Questions: Questions @hasOne
+  nextQuestionID: String
+  deleted: Boolean
+  GuidanceContent: Guidance @hasOne
+  RoadMapItems: RoadMapItems @hasOne
+  QuestionGroup: QuestionGroup @hasOne
+}
+
+type Questions @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  question: String
+  helpText: String
+  QuestionGroup: QuestionGroup @hasOne
+  deleted: Boolean
+  isFirstQuestion: Boolean
+  questionNumber: Int
+}
+
+type QuestionGroup @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String
+  description: String
+  imageS3ObjectKey: String
+  deleted: Boolean
+  type: QuestionGroupType
+  status: EnumStatuses
+  QuestionGroupTypes: QuestionGroupTypes @hasOne
+  groupLevel: Int
+  RoadmapGroup: RoadmapGroup @hasOne
+}
+
+type UserQuestionGroups @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  User: User @hasOne
+  QuestionGroup: QuestionGroup @hasOne
+  status: String
+}
+
+type UserRoadmapItems @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  User: User @hasOne
+  RoadmapGroup: RoadmapGroup @hasOne
+  RoadMapItems: RoadMapItems @hasOne
+  Questions: Questions @hasOne
+  status: String
+}
+
+type RoadmapGroup @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  description: String
+  imageS3ObjectKey: String
+}
+
+type Bookmarks @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  User: User @hasOne
+  Guidance: Guidance @hasOne
+  deleted: Boolean
+}
+
+type ActivityUserApp @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  section: String
+  page: String
+  details: String
+  userGUID: String
+  userEmail: String
+  User: User @hasOne
+
+}
+
+type GuidanceContent @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  title: String
+  guidanceID: ID!
+  content: String
+  link: String
+  order: Int!
+}
+
+enum EnumUserTypes {
+  ACECURA_ADMIN
+  APP_USER
+  TERRII_USER
+}
+
+type GuidanceTypes @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String
+  description: String
+  colour: String
+  deleted: Boolean
+}
+
+type Guidance @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  title: String
+  shortDesc: String
+  longDesc: String
+  thumbURL: AWSURL
+  date: AWSDate
+  time: AWSTime
+  estTime: Float
+  deleted: Boolean
+  GuidanceTypes: GuidanceTypes @hasOne
+  location: String
+  author: String
+  S3ObjectKey: String
+  GuidanceContents: [GuidanceContent] @hasMany(fields: ["id"])
+  status: EnumStatuses
+  active: Boolean
+  lowerCaseTitle: String
+  lowerCaseShortDesc: String
+  scheduleDateTime: AWSDateTime
+}
+
+type Calendar @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  title: String
+  description: String
+  datetime: AWSDateTime
+  location: String
+  Guidance: Guidance @hasOne
+  User: User @hasOne
+  done: Boolean
+  CalendarItemType: CalendarItemType @hasOne
+}
+
+type Articles @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  title: String
+  description: String
+  imageURL: String
+}
+
+type ChatRoom @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String
+  image: String
+  Messages: [Message] @hasMany(fields: ["id"])
+  LastMessage: Message @hasOne
+  users: [User] @manyToMany(relationName: "UserChatRoom")
+  isChatBot: Boolean!
+}
+
+type Message @model @auth(rules: [{ allow: public }]) {
+  id: ID!
+  chatroomID: ID! @index(name: "byChatRoom", sortKeyFields: ["createdAt"], queryField: "byChatRoom")
+  createdAt: AWSDateTime!
+  text: String!
+  userID: ID!
+  User: User @hasOne
+  mediaS3URL: String
+  needsModeration: Boolean
+  moderationLabel: String
+  moderationScore: Float
+}
+
+type User @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  status: String
+  image: String
+  ChatRooms: [ChatRoom] @manyToMany(relationName: "UserChatRoom")
+  userType: EnumUserTypes
+  deleted: Boolean
+  firstName: String
+  lastName: String
+  mobileNo: String
+  headerImage: String
+  UserExtendedInfos: [UserExtendedInfo] @hasMany(indexName: "byUser", fields: ["id"])
+  pwdName: String
+  expoNotificationToken: String
+  nativeNotificationToken: String
+  myfriendss: [MyFriends] @manyToMany(relationName: "MyFriendsUser")
+  postRegistrationComplete: Boolean
+  additionalInformationComplete: Boolean
+  lastActivity: AWSDateTime
+  # TERRii app connections
+  terriiProfile: TerriiUserProfile @hasOne
+}
+ 
+type JournalEntry @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  User: User @hasOne
+  title: String
+  content: String
+  entryDatetime: AWSDateTime
+  imageKey: String
+  emotion: String
+  tag: String
+}
+
+type CommunityEvent @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  title: String!
+  description: String
+  imageS3Key: String
+  eventDateTime: AWSDateTime!
+  location: String!
+  communityGroupID: ID!
+  CommunityGroup: CommunityGroup @hasOne(fields: ["communityGroupID"])
+  createdByID: ID!
+  createdBy: User @hasOne(fields: ["createdByID"])
+  CommunityEventAttendances: [CommunityEventAttendance] @hasMany(indexName: "byEvent", fields: ["id"])
+}
+
+type CommunityEventAttendance @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  userID: ID!
+  User: User @hasOne(fields: ["userID"])
+  eventID: ID! @index(name: "byEvent", queryField: "attendancesByEvent")
+  CommunityEvent: CommunityEvent @hasOne(fields: ["eventID"])
+  status: String
+}
+
+type CommunityCommentLikes @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  commentID: ID! @index(name: "byComment")
+  communityCommentLikesUserId: ID!
+  User: User @hasOne
+}
+
+type CarePlanOutputs @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  User: User @hasOne
+  carePlanJSON: String
+  deleted: Boolean
+  carePlanName: String
+}
+
+# TERRii App Schema - All tables are prefixed with "Terrii" to avoid conflicts
+
+type TerriiCareHome @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  address: String
+  city: String
+  postCode: String
+  phoneNumber: String
+  email: String
+  website: String
+  adminUsers: [TerriiUserProfile] @hasMany(indexName: "byCareHome", fields: ["id"])
+  residents: [TerriiResident] @hasMany(indexName: "byCareHome", fields: ["id"])
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+enum TerriiUserRole {
+  ADMIN
+  CARE_STAFF
+  MANAGER
+}
+
+type TerriiUserProfile @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  userID: ID! @index(name: "byUser")
+  user: User @hasOne(fields: ["userID"])
+  role: TerriiUserRole!
+  careHomeID: ID! @index(name: "byCareHome")
+  careHome: TerriiCareHome @hasOne(fields: ["careHomeID"])
+  lastLogin: AWSDateTime
+  profilePicture: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+enum TerriiResidentStatus {
+  STABLE
+  CHECK
+  URGENT
+}
+
+type TerriiResident @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  room: String
+  photo: String
+  careHomeID: ID! @index(name: "byCareHome")
+  careHome: TerriiCareHome @hasOne(fields: ["careHomeID"])
+  dateOfBirth: AWSDate
+  admissionDate: AWSDate
+  status: TerriiResidentStatus
+  lastUpdate: AWSDateTime
+  familyMembers: [TerriiResidentFamily] @hasMany(indexName: "byResident", fields: ["id"])
+  medicalInfo: TerriiResidentMedical @hasOne
+  carePreferences: TerriiResidentCarePreferences @hasOne
+  activities: [TerriiResidentActivity] @hasMany(indexName: "byResident", fields: ["id"])
+  emergencyContact: TerriiResidentEmergencyContact @hasOne
+  unreadMessages: Int
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type TerriiResidentFamily @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  relationship: String
+  phone: String
+  email: String
+  residentID: ID! @index(name: "byResident")
+  resident: TerriiResident @hasOne(fields: ["residentID"])
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type TerriiResidentMedical @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  primaryPhysician: String
+  conditions: [String]
+  medications: [TerriiResidentMedication] @hasMany(indexName: "byMedicalInfo", fields: ["id"])
+  allergies: [String]
+  dietaryRestrictions: [String]
+  residentID: ID!
+  resident: TerriiResident @hasOne(fields: ["residentID"])
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type TerriiResidentMedication @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  dosage: String
+  time: String
+  medicalInfoID: ID! @index(name: "byMedicalInfo")
+  medicalInfo: TerriiResidentMedical @hasOne(fields: ["medicalInfoID"])
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type TerriiResidentCarePreferences @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  interests: [String]
+  routine: String
+  communication: String
+  mobility: String
+  residentID: ID!
+  resident: TerriiResident @hasOne(fields: ["residentID"])
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type TerriiResidentActivity @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  date: AWSDate!
+  activity: String!
+  notes: String
+  staff: String
+  residentID: ID! @index(name: "byResident", sortKeyFields: ["date"], queryField: "activitiesByResidentAndDate")
+  resident: TerriiResident @hasOne(fields: ["residentID"])
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type TerriiResidentEmergencyContact @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  relationship: String
+  phone: String!
+  email: String
+  residentID: ID!
+  resident: TerriiResident @hasOne(fields: ["residentID"])
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type TerriiMessageThread @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  residentID: ID! @index(name: "byResident")
+  resident: TerriiResident @hasOne(fields: ["residentID"])
+  participants: [String]
+  isStarred: Boolean
+  isArchived: Boolean
+  unreadCount: Int
+  lastMessage: TerriiMessage @hasOne
+  messages: [TerriiMessage] @hasMany(indexName: "byThread", fields: ["id"])
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type TerriiMessage @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  content: String!
+  sender: String!
+  isSentByStaff: Boolean!
+  threadID: ID! @index(name: "byThread", sortKeyFields: ["createdAt"], queryField: "messagesByThread")
+  thread: TerriiMessageThread @hasOne(fields: ["threadID"])
+  reactions: [String]
+  attachmentURL: String
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime
+}
+
+type TerriiMoment @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  content: String
+  createdByID: ID!
+  createdBy: TerriiUserProfile @hasOne(fields: ["createdByID"])
+  residentID: ID @index(name: "byResident")
+  resident: TerriiResident @hasOne(fields: ["residentID"])
+  careHomeID: ID! @index(name: "byCareHome")
+  careHome: TerriiCareHome @hasOne(fields: ["careHomeID"])
+  media: [String]
+  tags: [String]
+  likes: Int
+  comments: [TerriiMomentComment] @hasMany(indexName: "byMoment", fields: ["id"])
+  isPrivate: Boolean
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime
+}
+
+type TerriiMomentComment @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  content: String!
+  createdByID: ID!
+  createdBy: TerriiUserProfile @hasOne(fields: ["createdByID"])
+  momentID: ID! @index(name: "byMoment", sortKeyFields: ["createdAt"], queryField: "commentsByMoment")
+  moment: TerriiMoment @hasOne(fields: ["momentID"])
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime
+}
+
+type TerriiCommunityPost @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  content: String!
+  createdByID: ID!
+  createdBy: TerriiUserProfile @hasOne(fields: ["createdByID"])
+  careHomeID: ID! @index(name: "byCareHome")
+  careHome: TerriiCareHome @hasOne(fields: ["careHomeID"])
+  media: [String]
+  tags: [String]
+  likes: Int
+  comments: [TerriiCommunityComment] @hasMany(indexName: "byCommunityPost", fields: ["id"])
+  isPinned: Boolean
+  isAnnouncement: Boolean
+  mode: String
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime
+}
+
+type TerriiCommunityComment @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  content: String!
+  createdByID: ID!
+  createdBy: TerriiUserProfile @hasOne(fields: ["createdByID"])
+  postID: ID! @index(name: "byCommunityPost", sortKeyFields: ["createdAt"], queryField: "commentsByCommunityPost")
+  post: TerriiCommunityPost @hasOne(fields: ["postID"])
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime
+}

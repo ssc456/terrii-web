@@ -1,84 +1,115 @@
-import { useState, useRef, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
+import * as React from "react";
+import * as SelectPrimitive from "@radix-ui/react-select";
+import { Check, ChevronDown } from "lucide-react";
+import { cn } from "../../lib/utils";
 
-interface SelectOption {
-  value: string;
-  label: string;
-}
+const Select = SelectPrimitive.Root;
+const SelectGroup = SelectPrimitive.Group;
+const SelectValue = SelectPrimitive.Value;
 
-interface SelectProps {
-  value: string;
-  onValueChange: (value: string) => void;
-  options: SelectOption[];
-  placeholder?: string;
-  className?: string;
-  disabled?: boolean;
-}
+const SelectTrigger = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "flex h-10 w-full items-center justify-between rounded-md border border-terrii-border bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-terrii-text-light focus:outline-none focus:ring-2 focus:ring-terrii-blue focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <SelectPrimitive.Icon asChild>
+      <ChevronDown className="h-4 w-4 opacity-50" />
+    </SelectPrimitive.Icon>
+  </SelectPrimitive.Trigger>
+));
+SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
-export function Select({ 
-  value, 
-  onValueChange, 
-  options, 
-  placeholder = 'Select an option', 
-  className = '',
-  disabled = false 
-}: SelectProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const selectedOption = options.find(option => option.value === value);
-  
-  return (
-    <div 
-      ref={containerRef}
-      className={`relative ${className}`}
-    >
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between w-full px-3 py-2 text-left bg-white border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-terrii-blue ${disabled ? 'bg-gray-100 text-gray-400' : 'text-terrii-text-primary'} ${className}`}
-      >
-        <span className={!selectedOption ? 'text-terrii-text-light' : ''}>
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
-        <ChevronDown className="h-4 w-4" />
-      </button>
-      
-      {isOpen && !disabled && (
-        <div className="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg max-h-60 overflow-auto">
-          <ul className="py-1">
-            {options.map((option) => (
-              <li
-                key={option.value}
-                onClick={() => {
-                  onValueChange(option.value);
-                  setIsOpen(false);
-                }}
-                className={`px-3 py-2 cursor-pointer hover:bg-terrii-blue/10 ${
-                  option.value === value ? 'bg-terrii-blue/20 font-medium' : ''
-                }`}
-              >
-                {option.label}
-              </li>
-            ))}
-          </ul>
-        </div>
+const SelectContent = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
+>(({ className, children, position = "popper", ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        "relative z-50 min-w-[8rem] overflow-hidden rounded-md border border-terrii-border bg-white text-terrii-text-primary shadow-md animate-in fade-in-80",
+        position === "popper" && "translate-y-1",
+        className
       )}
-    </div>
-  );
-}
+      position={position}
+      {...props}
+    >
+      <SelectPrimitive.Viewport
+        className={cn(
+          "p-1",
+          position === "popper" &&
+            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+        )}
+      >
+        {children}
+      </SelectPrimitive.Viewport>
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+));
+SelectContent.displayName = SelectPrimitive.Content.displayName;
+
+const SelectLabel = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
+    {...props}
+  />
+));
+SelectLabel.displayName = SelectPrimitive.Label.displayName;
+
+const SelectItem = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-terrii-blue/10 focus:text-terrii-text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <SelectPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </SelectPrimitive.ItemIndicator>
+    </span>
+
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+  </SelectPrimitive.Item>
+));
+SelectItem.displayName = SelectPrimitive.Item.displayName;
+
+const SelectSeparator = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-terrii-border", className)}
+    {...props}
+  />
+));
+SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+};

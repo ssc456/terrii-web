@@ -76,13 +76,13 @@ export function MessagesScreen() {
   };
   
   const handleReplyToMessage = (messageId: string) => {
-    toast.info('Replying to message');
-    // In a real app, this would set reply context
+    toast.info(`Replying to message ${messageId}`);
+    console.log(`Replying to message ${messageId}`);
   };
   
-  const handleReactToMessage = (messageId: string) => {
-    toast.success('Reaction added');
-    // In a real app, this would add a reaction to the message
+  const handleReactToMessage = (messageId: string, reaction: string) => {
+    toast.success(`Added ${reaction} reaction to message`);
+    console.log(`Added ${reaction} reaction to message ${messageId}`);
   };
   
   const getInitials = (name: string) => {
@@ -161,32 +161,33 @@ export function MessagesScreen() {
           ))}
         </div>
         
-        {/* Message Input */}
-        <div className="bg-white border-t border-gray-200 p-4">
-          <div className="flex items-end space-x-2">
+        {/* Updated message input box with proper full width */}
+        <div className="flex items-center w-full px-4 py-3 border-t border-gray-200 bg-white sticky bottom-0 left-0 right-0">
+          <Button variant="ghost" size="icon" className="flex-shrink-0 mr-2">
+            <Paperclip className="h-5 w-5 text-gray-500" />
+          </Button>
+          <div className="flex-grow w-full">
             <Input
-              placeholder="Type your message..."
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-              className="flex-1"
+              placeholder="Type your message..."
+              className="w-full"
             />
-            
-            <Button 
-              variant="ghost" 
-              size="sm"
-            >
-              <Paperclip className="h-4 w-4" />
-            </Button>
-            
-            <Button 
-              onClick={handleSendMessage}
-              disabled={!messageText.trim()}
-              className="bg-terrii-green-dark hover:bg-terrii-green text-terrii-text-primary flex items-center"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
           </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="flex-shrink-0 ml-2"
+            onClick={() => {
+              if (messageText.trim()) {
+                // Send message logic
+                setMessageText('');
+                toast.success('Message sent');
+              }
+            }}
+          >
+            <Send className="h-5 w-5 text-terrii" />
+          </Button>
         </div>
         
         {/* Bottom Nav */}

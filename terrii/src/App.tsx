@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -7,13 +8,47 @@ import { ResidentsScreen } from './screens/ResidentsScreen';
 import { ResidentProfileScreen } from './screens/ResidentProfileScreen';
 import { MessagesScreen } from './screens/MessagesScreen';
 import { MomentsScreen } from './screens/MomentsScreen';
+import { CommunityScreen } from './screens/CommunityScreen';
+import { CareHomeSelectionScreen } from './screens/CareHomeSelectionScreen';
+import { TerriiOnboarding } from './components/TerriiOnboarding';
 
 // Protected route wrapper
-function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const { isAuthenticated } = useAuth();
+function ProtectedRoute({ children }: { children: React.ReactElement }) {
+  const { isAuthenticated, isLoading, terriiProfile, isSuperAdmin } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // Show a loading state while checking auth
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-pulse text-terrii-text-primary">Loading...</div>
+    </div>;
+  }
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Check for superadmin first - this should take precedence
+  const location = window.location.pathname;
+  if (isSuperAdmin && (!terriiProfile || !terriiProfile.careHomeID) && location !== '/select-care-home') {
+    console.log('Redirecting superadmin to select-care-home with create=true');
+    return <Navigate to="/select-care-home?create=true" replace />;
+  }
+  
+  // Then handle regular users who need onboarding
+  if (!terriiProfile && !showOnboarding) {
+    return (
+      <div className="min-h-screen bg-terrii-blue/20 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <TerriiOnboarding onComplete={() => setShowOnboarding(true)} />
+        </div>
+      </div>
+    );
+  }
+  
+  // Handle users who completed onboarding but need to select a care home
+  if (showOnboarding || (terriiProfile && !terriiProfile.careHomeID && location !== '/select-care-home')) {
+    return <Navigate to="/select-care-home" replace />;
   }
   
   return children;
@@ -27,6 +62,14 @@ function AppRoutes() {
       <Route 
         path="/login" 
         element={isAuthenticated ? <Navigate to="/" replace /> : <LoginScreen />} 
+      />
+      <Route 
+        path="/select-care-home" 
+        element={
+          <ProtectedRoute>
+            <CareHomeSelectionScreen />
+          </ProtectedRoute>
+        } 
       />
       <Route 
         path="/" 
@@ -69,10 +112,20 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/community"
+        element={
+          <ProtectedRoute>
+            <CommunityScreen />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/angela"
         element={
           <ProtectedRoute>
-            {/* <AngelaScreen /> */}
+            <div className="min-h-screen p-4 flex items-center justify-center">
+              <p className="text-terrii-text-primary">Angela Screen Coming Soon</p>
+            </div>
           </ProtectedRoute>
         }
       />
@@ -80,7 +133,9 @@ function AppRoutes() {
         path="/insights"
         element={
           <ProtectedRoute>
-            {/* <InsightsScreen /> */}
+            <div className="min-h-screen p-4 flex items-center justify-center">
+              <p className="text-terrii-text-primary">Insights Screen Coming Soon</p>
+            </div>
           </ProtectedRoute>
         }
       />

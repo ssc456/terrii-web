@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { 
   MessageSquare, MoreHorizontal, Check, CheckCheck, ThumbsUp, 
-  Heart, Star, Download
+  Heart, Star, Download, Reply
 } from 'lucide-react';
 // Import the entire module
 import * as MessagesModule from '../../mock/messages';
@@ -119,31 +119,32 @@ export function MessageBubble({ message, onReply, onReact }: MessageBubbleProps)
             </div>
           )}
 
-          {/* Quick Actions - show on hover */}
+          {/* Fixed Quick Actions - show on hover with specific reaction types */}
           {hovering && (
-            <div className={`absolute -top-3 ${message.isOwn ? 'left-0' : 'right-0'} flex items-center space-x-1 bg-white shadow rounded-full py-1 px-2`}>
+            <div className={`absolute -top-3 ${message.isOwn ? 'left-0' : 'right-0'} flex items-center space-x-1 bg-white shadow rounded-full py-1 px-2 z-10`}>
               <Button
                 variant="ghost"
                 size="sm"
                 className="w-6 h-6 rounded-full p-0"
                 onClick={() => onReply && onReply(message.id)}
               >
-                <MessageSquare className="h-3 w-3" />
+                <Reply className="h-3 w-3" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 className="w-6 h-6 rounded-full p-0"
-                onClick={() => onReact && onReact(message.id)}
+                onClick={() => onReact && onReact(message.id, 'like')}
+              >
+                <ThumbsUp className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-6 h-6 rounded-full p-0"
+                onClick={() => onReact && onReact(message.id, 'heart')}
               >
                 <Heart className="h-3 w-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-6 h-6 rounded-full p-0"
-              >
-                <MoreHorizontal className="h-3 w-3" />
               </Button>
             </div>
           )}

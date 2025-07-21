@@ -1,0 +1,26 @@
+{
+  "staging": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-acecuraapp-staging-180506-authRole",
+      "UnauthRoleArn": "arn:aws:iam::613056475330:role/amplify-acecuraapp-staging-180506-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::613056475330:role/amplify-acecuraapp-staging-180506-authRole",
+      "Region": "eu-west-2",
+      "DeploymentBucketName": "amplify-acecuraapp-staging-180506-deployment",
+      "UnauthRoleName": "amplify-acecuraapp-staging-180506-unauthRole",
+      "StackName": "amplify-acecuraapp-staging-180506",
+      "StackId": "arn:aws:cloudformation:eu-west-2:613056475330:stack/amplify-acecuraapp-staging-180506/3a00ae00-52fd-11ed-990c-0aa48804ae92",
+      "AmplifyAppId": "dkklgd4l7oyfv"
+    },
+    "categories": {
+      "auth": {
+        "AcecuraApp": {}
+      },
+      "storage": {
+        "s3acecuraappstorage": {}
+      },
+      "api": {
+        "AcecuraApp": {}
+      }
+    }
+  }
+}
