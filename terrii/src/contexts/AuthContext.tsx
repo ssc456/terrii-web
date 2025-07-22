@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { Auth } from '../lib/amplify';
 import { getTerriiUserProfile, updateTerriiUserProfile } from '../lib/terriiApi';
+import awsconfig from '../aws-exports.ts';
 
 // Define the TERRii user profile type
 type TerriiUserProfile = {
@@ -91,10 +92,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('Attempting login with email:', email);
+      console.log('GraphQL endpoint:', awsconfig.aws_appsync_graphqlEndpoint);
+      console.log('Cognito User Pool ID:', awsconfig.aws_user_pools_id);
+      
       const { isSignedIn, nextStep } = await Auth.signIn({ username: email, password });
       
       if (isSignedIn) {
+        console.log('Sign in successful');
         const currentUser = await Auth.getCurrentUser();
+        console.log('Current user:', currentUser);
         setUser(currentUser);
         setIsAuthenticated(true);
         setIsProfileSetup(true); // Assuming user profile is set up if authenticated
@@ -107,13 +114,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // Check for TERRii profile
         try {
+          console.log('Fetching TERRii profile for user:', currentUser.userId);
           const profile = await getTerriiUserProfile(currentUser.userId);
           if (profile) {
+            console.log('TERRii profile found:', profile);
             setTerriiProfile(profile as TerriiUserProfile);
             // Update last login time
             await updateTerriiUserProfile(profile.id, { 
               lastLogin: new Date().toISOString() 
             });
+          } else {
+            console.log('No TERRii profile found for user');
           }
         } catch (profileError) {
           console.error('Error fetching TERRii profile:', profileError);
@@ -122,10 +133,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return currentUser;
       } else {
         // Handle next steps if any (MFA, etc.)
+        console.log('Authentication requires additional steps:', nextStep);
         throw new Error(`Authentication requires additional steps: ${nextStep?.signInStep}`);
       }
     } catch (error) {
       console.error('Error signing in:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       throw error;
     }
   };
