@@ -44,8 +44,9 @@ amplifytools.xcconfig
 .secret-*
 **.sample
 
-# TERRii specific - exclude entire amplify folder from repo
+# TERRii specific - exclude backend deployment files
 amplify/
+amplify.yml
 team-provider-info.json
 .amplifyrc
 #amplify-do-not-edit-end

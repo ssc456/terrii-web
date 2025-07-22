@@ -4,3 +4,32 @@
 .DS_Store
 Thumbs.db
 .vscode
+
+# Amplify files - prevent deployment backend conflicts
+/terrii/amplify/
+/terrii/aws-exports.js
+/terrii/.amplifyrc
+/terrii/amplify-meta.json
+/terrii/team-provider-info.json
+/terrii/amplify.yml
+
+# Amplify generated files
+/terrii/amplify/\#current-cloud-backend
+/terrii/amplify/.config/local-*
+/terrii/amplify/logs
+/terrii/amplify/mock-data
+/terrii/amplify/mock-api-resources
+/terrii/amplify/backend/amplify-meta.json
+/terrii/amplify/backend/.temp
+/terrii/awsconfiguration.json
+/terrii/amplifyconfiguration.json
+/terrii/amplifyconfiguration.dart
+/terrii/amplify-build-config.json
+/terrii/amplify-gradle-config.json
+/terrii/amplifytools.xcconfig
+/terrii/.secret-*
+/terrii/*.sample
+
+# Build outputs
+/terrii/build/
+/terrii/dist/
