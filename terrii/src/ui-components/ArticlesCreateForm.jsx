@@ -13,9 +13,10 @@ import {
   TextAreaField,
   TextField,
 } from "@aws-amplify/ui-react";
-import { Articles } from "../models";
 import { fetchByPath, getOverrideProps, validateField } from "./utils";
-import { DataStore } from "aws-amplify/datastore";
+import { generateClient } from "aws-amplify/api";
+import { createArticles } from "../graphql/mutations";
+const client = generateClient();
 export default function ArticlesCreateForm(props) {
   const {
     clearOnSuccess = true,
@@ -107,7 +108,14 @@ export default function ArticlesCreateForm(props) {
               modelFields[key] = null;
             }
           });
-          await DataStore.save(new Articles(modelFields));
+          await client.graphql({
+            query: createArticles.replaceAll("__typename", ""),
+            variables: {
+              input: {
+                ...modelFields,
+              },
+            },
+          });
           if (onSuccess) {
             onSuccess(modelFields);
           }
@@ -116,7 +124,8 @@ export default function ArticlesCreateForm(props) {
           }
         } catch (err) {
           if (onError) {
-            onError(modelFields, err.message);
+            const messages = err.errors.map((e) => e.message).join("\n");
+            onError(modelFields, messages);
           }
         }
       }}

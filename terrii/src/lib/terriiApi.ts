@@ -47,14 +47,14 @@ export const getTerriiUserProfile = async (userId: string) => {
 export const createTerriiUserProfile = async (
   userId: string, 
   careHomeId: string, 
-  role: string,
+  role: 'ADMIN' | 'CARE_STAFF' | 'MANAGER',
   profilePicture?: string
 ) => {
   try {
     const userProfileData = {
       userID: userId,
       careHomeID: careHomeId,
-      role: role,
+      role: role as any, // Cast to any to handle enum conversion
       profilePicture: profilePicture || null,
       lastLogin: new Date().toISOString()
     };
@@ -229,6 +229,111 @@ export const listCareHomes = async () => {
 };
 
 /**
+ * Update a care home
+ * @param careHomeId The ID of the care home
+ * @param data The data to update
+ * @returns The updated care home
+ */
+export const updateCareHome = async (careHomeId: string, data: any) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.updateTerriiCareHome,
+      variables: {
+        input: {
+          id: careHomeId,
+          ...data
+        }
+      }
+    });
+    return response.data.updateTerriiCareHome;
+  } catch (error) {
+    console.error('Error updating care home:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a care home
+ * @param careHomeId The ID of the care home
+ * @returns The deleted care home
+ */
+export const deleteCareHome = async (careHomeId: string) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.deleteTerriiCareHome,
+      variables: {
+        input: { id: careHomeId }
+      }
+    });
+    return response.data.deleteTerriiCareHome;
+  } catch (error) {
+    console.error('Error deleting care home:', error);
+    throw error;
+  }
+};
+
+/**
+ * List all regular users (non-TERRii)
+ * @returns A list of all users
+ */
+export const listAllUsers = async () => {
+  try {
+    const response = await client.graphql({
+      query: queries.listUsers
+    });
+    return response.data.listUsers.items;
+  } catch (error) {
+    console.error('Error listing users:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get users without TERRii profiles (unlinked users)
+ * @returns A list of users without TERRii profiles
+ */
+export const getUsersWithoutTERRiiProfile = async () => {
+  try {
+    // Get all users
+    const allUsers = await listAllUsers();
+    
+    // Get all TERRii profiles
+    const profilesResponse = await client.graphql({
+      query: queries.listTerriiUserProfiles
+    });
+    const profiles = profilesResponse.data.listTerriiUserProfiles.items;
+    
+    // Filter users who don't have TERRii profiles
+    const linkedUserIds = profiles.map((profile: any) => profile.userID);
+    const unlinkedUsers = allUsers.filter((user: any) => 
+      !linkedUserIds.includes(user.id) && 
+      user.userType === 'APP_USER' // Only include regular app users, not admins
+    );
+    
+    return unlinkedUsers;
+  } catch (error) {
+    console.error('Error getting users without TERRii profiles:', error);
+    throw error;
+  }
+};
+
+/**
+ * Link a user to a care home with a specific role
+ * @param userId The user ID
+ * @param careHomeId The care home ID
+ * @param role The role to assign
+ * @returns The created TERRii user profile
+ */
+export const linkUserToCareHome = async (userId: string, careHomeId: string, role: 'ADMIN' | 'CARE_STAFF' | 'MANAGER') => {
+  try {
+    return await createTerriiUserProfile(userId, careHomeId, role);
+  } catch (error) {
+    console.error('Error linking user to care home:', error);
+    throw error;
+  }
+};
+
+/**
  * Get a resident by ID
  * @param residentId The ID of the resident
  * @returns The resident data
@@ -269,21 +374,313 @@ export const listResidents = async (careHomeId: string) => {
 };
 
 /**
- * Create a new resident
- * @param data The resident data
- * @returns The newly created resident
+ * Create a new resident with all related data
+ * @param data The resident data including medical info, family members, etc.
+ * @returns The newly created resident with all related data
  */
 export const createResident = async (data: any) => {
   try {
-    const response = await client.graphql({
+    // First create the basic resident record
+    const residentResponse = await client.graphql({
       query: mutations.createTerriiResident,
       variables: {
-        input: data
+        input: {
+          name: data.name,
+          room: data.room,
+          careHomeID: data.careHomeID,
+          dateOfBirth: data.dateOfBirth,
+          admissionDate: data.admissionDate,
+          status: data.status || 'STABLE',
+          lastUpdate: data.lastUpdate || new Date().toISOString(),
+          unreadMessages: data.unreadMessages || 0,
+          photo: data.photo
+        }
       }
     });
-    return response.data.createTerriiResident;
+
+    const newResident = residentResponse.data.createTerriiResident;
+
+    // Create medical information if provided
+    if (data.medicalInfo) {
+      await client.graphql({
+        query: mutations.createTerriiResidentMedical,
+        variables: {
+          input: {
+            residentID: newResident.id,
+            primaryPhysician: data.medicalInfo.primaryPhysician,
+            conditions: data.medicalInfo.conditions || [],
+            allergies: data.medicalInfo.allergies || [],
+            dietaryRestrictions: data.medicalInfo.dietaryRestrictions || []
+          }
+        }
+      });
+    }
+
+    // Create emergency contact if provided
+    if (data.emergencyContact) {
+      await client.graphql({
+        query: mutations.createTerriiResidentEmergencyContact,
+        variables: {
+          input: {
+            residentID: newResident.id,
+            name: data.emergencyContact.name,
+            relationship: data.emergencyContact.relationship,
+            phone: data.emergencyContact.phone,
+            email: data.emergencyContact.email
+          }
+        }
+      });
+    }
+
+    // Create care preferences if provided
+    if (data.carePreferences) {
+      await client.graphql({
+        query: mutations.createTerriiResidentCarePreferences,
+        variables: {
+          input: {
+            residentID: newResident.id,
+            interests: data.carePreferences.interests || [],
+            routine: data.carePreferences.routine,
+            communication: data.carePreferences.communication,
+            mobility: data.carePreferences.mobility
+          }
+        }
+      });
+    }
+
+    // Create family members if provided
+    if (data.familyMembers && data.familyMembers.length > 0) {
+      for (const familyMember of data.familyMembers) {
+        await client.graphql({
+          query: mutations.createTerriiResidentFamily,
+          variables: {
+            input: {
+              residentID: newResident.id,
+              name: familyMember.name,
+              relationship: familyMember.relationship,
+              phone: familyMember.phone,
+              email: familyMember.email
+            }
+          }
+        });
+      }
+    }
+
+    // Return the created resident with full data
+    return await getResidentWithFullData(newResident.id);
   } catch (error) {
     console.error('Error creating resident:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get resident with all related data (full profile)
+ * @param residentId The ID of the resident
+ * @returns The resident with all related data
+ */
+export const getResidentWithFullData = async (residentId: string) => {
+  try {
+    // Get the basic resident data
+    const residentResponse = await client.graphql({
+      query: queries.getTerriiResident,
+      variables: { id: residentId }
+    });
+    
+    const resident = residentResponse.data.getTerriiResident;
+    if (!resident) {
+      throw new Error('Resident not found');
+    }
+
+    // Get all related data
+    const [familyMembers, medicalInfo, carePreferences, activities, emergencyContact] = await Promise.all([
+      getResidentFamilyMembers(residentId),
+      getResidentMedicalInfo(residentId),
+      getResidentCarePreferences(residentId),
+      getResidentActivities(residentId),
+      getResidentEmergencyContact(residentId)
+    ]);
+
+    return {
+      ...resident,
+      familyMembers: familyMembers || [],
+      medicalInfo: medicalInfo?.[0] || null,
+      carePreferences: carePreferences || null,
+      activities: activities || [],
+      emergencyContact: emergencyContact || null
+    };
+  } catch (error) {
+    console.error('Error fetching resident with full data:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get emergency contact for a resident
+ * @param residentId The ID of the resident
+ * @returns The resident's emergency contact
+ */
+export const getResidentEmergencyContact = async (residentId: string) => {
+  try {
+    const response = await client.graphql({
+      query: queries.listTerriiResidentEmergencyContacts,
+      variables: {
+        filter: {
+          residentID: { eq: residentId }
+        }
+      }
+    });
+    
+    const contacts = response.data.listTerriiResidentEmergencyContacts?.items;
+    if (contacts && contacts.length > 0) {
+      return contacts[0];
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error fetching resident emergency contact:', error);
+    throw error;
+  }
+};
+
+/**
+ * Add an activity for a resident
+ * @param residentId The ID of the resident
+ * @param activityData The activity data
+ * @returns The newly created activity
+ */
+export const addResidentActivity = async (residentId: string, activityData: any) => {
+  try {
+    // Build comprehensive notes that include mood and health status if provided
+    let notes = activityData.notes || '';
+    
+    if (activityData.mood || activityData.healthStatus || activityData.familyNotified) {
+      const additionalInfo = [];
+      if (activityData.mood) {
+        additionalInfo.push(`Mood: ${activityData.mood}`);
+      }
+      if (activityData.healthStatus) {
+        additionalInfo.push(`Health Status: ${activityData.healthStatus}`);
+      }
+      if (activityData.familyNotified) {
+        additionalInfo.push(`Family notified: Yes`);
+      }
+      
+      if (additionalInfo.length > 0) {
+        notes = notes + (notes ? '\n\n' : '') + additionalInfo.join(', ');
+      }
+    }
+
+    const response = await client.graphql({
+      query: mutations.createTerriiResidentActivity,
+      variables: {
+        input: {
+          residentID: residentId,
+          date: activityData.date || new Date().toISOString().split('T')[0],
+          activity: activityData.activity,
+          notes: notes,
+          staff: activityData.staff
+        }
+      }
+    });
+    return response.data.createTerriiResidentActivity;
+  } catch (error) {
+    console.error('Error adding resident activity:', error);
+    throw error;
+  }
+};
+
+/**
+ * Add a resident activity and update the resident's last update time
+ * This ensures the resident's status is updated correctly
+ * @param residentId The ID of the resident
+ * @param activityData The activity data to add
+ * @returns Object containing both the activity and updated resident
+ */
+export const addResidentActivityWithUpdate = async (residentId: string, activityData: any) => {
+  try {
+    // First add the activity
+    const activity = await addResidentActivity(residentId, activityData);
+    
+    // Then update the resident's lastUpdate field
+    const updateResponse = await client.graphql({
+      query: mutations.updateTerriiResident,
+      variables: {
+        input: {
+          id: residentId,
+          lastUpdate: new Date().toISOString()
+        }
+      }
+    });
+    
+    return {
+      activity: activity,
+      resident: updateResponse.data.updateTerriiResident
+    };
+  } catch (error) {
+    console.error('Error adding resident activity with update:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update resident status and last update time
+ * @param residentId The ID of the resident
+ * @param status The new status
+ * @param notes Optional notes for the update
+ * @returns The updated resident
+ */
+export const updateResidentStatus = async (residentId: string, status: string, notes?: string) => {
+  try {
+    const updateData: any = {
+      id: residentId,
+      status: status,
+      lastUpdate: new Date().toISOString()
+    };
+
+    const response = await client.graphql({
+      query: mutations.updateTerriiResident,
+      variables: {
+        input: updateData
+      }
+    });
+
+    // If notes are provided, add an activity record
+    if (notes) {
+      await addResidentActivity(residentId, {
+        activity: 'Status Update',
+        notes: notes,
+        staff: 'System' // You might want to pass the current user's name here
+      });
+    }
+
+    return response.data.updateTerriiResident;
+  } catch (error) {
+    console.error('Error updating resident status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a resident and all related data
+ * @param residentId The ID of the resident
+ * @returns Success confirmation
+ */
+export const deleteResident = async (residentId: string) => {
+  try {
+    // Note: In a real implementation, you might want to soft delete or archive residents
+    // instead of permanently deleting them for data retention purposes
+    
+    const response = await client.graphql({
+      query: mutations.deleteTerriiResident,
+      variables: {
+        input: { id: residentId }
+      }
+    });
+    
+    return response.data.deleteTerriiResident;
+  } catch (error) {
+    console.error('Error deleting resident:', error);
     throw error;
   }
 };
@@ -448,10 +845,12 @@ export const getResidentActivities = async (residentId: string) => {
       }
     });
     
-    // Sort activities by date (newest first) after fetching
+    // Sort activities by createdAt (newest first) - use createdAt for better time precision
     const activities = response.data.listTerriiResidentActivities.items;
     return activities.sort((a, b) => {
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+      const timeA = new Date(a.createdAt || a.date).getTime();
+      const timeB = new Date(b.createdAt || b.date).getTime();
+      return timeB - timeA; // Newest first
     });
   } catch (error) {
     console.error('Error fetching resident activities:', error);
@@ -704,7 +1103,7 @@ export const addCommunityComment = async (data: any) => {
  * @param action 'like' or 'unlike'
  * @returns Success status
  */
-export const togglePostLike = async (postId: string, userId: string, action: 'like' | 'unlike') => {
+export const togglePostLike = async (postId: string, action: 'like' | 'unlike') => {
   try {
     // First get the current post
     const getResponse = await client.graphql({
@@ -717,22 +1116,21 @@ export const togglePostLike = async (postId: string, userId: string, action: 'li
       throw new Error(`Post with ID ${postId} not found`);
     }
     
-    // Ensure likes is an array
-    let likes: string[] = Array.isArray(post.likes) ? [...post.likes] : [];
-    
-    if (action === 'like' && !likes.includes(userId)) {
-      likes.push(userId);
-    } else if (action === 'unlike') {
-      likes = likes.filter((id: string) => id !== userId);
+    // Calculate new likes count
+    let newLikesCount = post.likes || 0;
+    if (action === 'like') {
+      newLikesCount += 1;
+    } else if (action === 'unlike' && newLikesCount > 0) {
+      newLikesCount -= 1;
     }
     
-    // Update the post with new likes array
+    // Update the post with new likes count
     const updateResponse = await client.graphql({
       query: mutations.updateTerriiCommunityPost,
       variables: {
         input: {
           id: postId,
-          likes: likes
+          likes: newLikesCount
         }
       }
     });

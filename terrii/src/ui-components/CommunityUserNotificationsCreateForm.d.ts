@@ -1,0 +1,48 @@
+/***************************************************************************
+ * The contents of this file were generated with Amplify Studio.           *
+ * Please refrain from making any modifications to this file.              *
+ * Any changes to this file will be overwritten when running amplify pull. *
+ **************************************************************************/
+
+import * as React from "react";
+import { GridProps, SelectFieldProps, SwitchFieldProps } from "@aws-amplify/ui-react";
+export declare type EscapeHatchProps = {
+    [elementHierarchy: string]: Record<string, unknown>;
+} | null;
+export declare type VariantValues = {
+    [key: string]: string;
+};
+export declare type Variant = {
+    variantValues: VariantValues;
+    overrides: EscapeHatchProps;
+};
+export declare type ValidationResponse = {
+    hasError: boolean;
+    errorMessage?: string;
+};
+export declare type ValidationFunction<T> = (value: T, validationResponse: ValidationResponse) => ValidationResponse | Promise<ValidationResponse>;
+export declare type CommunityUserNotificationsCreateFormInputValues = {
+    NotificationType?: string;
+    seen?: boolean;
+};
+export declare type CommunityUserNotificationsCreateFormValidationValues = {
+    NotificationType?: ValidationFunction<string>;
+    seen?: ValidationFunction<boolean>;
+};
+export declare type PrimitiveOverrideProps<T> = Partial<T> & React.DOMAttributes<HTMLDivElement>;
+export declare type CommunityUserNotificationsCreateFormOverridesProps = {
+    CommunityUserNotificationsCreateFormGrid?: PrimitiveOverrideProps<GridProps>;
+    NotificationType?: PrimitiveOverrideProps<SelectFieldProps>;
+    seen?: PrimitiveOverrideProps<SwitchFieldProps>;
+} & EscapeHatchProps;
+export declare type CommunityUserNotificationsCreateFormProps = React.PropsWithChildren<{
+    overrides?: CommunityUserNotificationsCreateFormOverridesProps | undefined | null;
+} & {
+    clearOnSuccess?: boolean;
+    onSubmit?: (fields: CommunityUserNotificationsCreateFormInputValues) => CommunityUserNotificationsCreateFormInputValues;
+    onSuccess?: (fields: CommunityUserNotificationsCreateFormInputValues) => void;
+    onError?: (fields: CommunityUserNotificationsCreateFormInputValues, errorMessage: string) => void;
+    onChange?: (fields: CommunityUserNotificationsCreateFormInputValues) => CommunityUserNotificationsCreateFormInputValues;
+    onValidate?: CommunityUserNotificationsCreateFormValidationValues;
+} & React.CSSProperties>;
+export default function CommunityUserNotificationsCreateForm(props: CommunityUserNotificationsCreateFormProps): React.ReactElement;

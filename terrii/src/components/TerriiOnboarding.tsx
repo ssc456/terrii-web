@@ -46,7 +46,7 @@ export function TerriiOnboarding({ onComplete }: TerriiOnboardingProps) {
     }
     try {
       setCreatingCareHome(true);
-      const newCareHome = await createCareHome({
+      await createCareHome({
         name: newCareHomeName,
         address: newCareHomeAddress,
         createdByID: user?.userId // Pass the user ID to associate as admin
@@ -83,7 +83,7 @@ export function TerriiOnboarding({ onComplete }: TerriiOnboardingProps) {
       await createTerriiUserProfile(
         user.userId,
         selectedCareHome,
-        role,
+        role as 'ADMIN' | 'CARE_STAFF' | 'MANAGER',
         user.attributes?.picture || null
       );
       

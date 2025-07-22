@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'primary' | 'secondary' | 'outline' | 'ghost' | 'text';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'icon';
   isLoading?: boolean;
   children: React.ReactNode;
 }
@@ -23,7 +23,8 @@ export function Button({
   const sizeStyles = {
     sm: "text-xs px-2.5 py-1",
     md: "text-sm px-3.5 py-2",
-    lg: "text-base px-5 py-2.5"
+    lg: "text-base px-5 py-2.5",
+    icon: "h-10 w-10"
   };
   
   // Variant styles

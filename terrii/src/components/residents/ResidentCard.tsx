@@ -1,5 +1,6 @@
 import { MessageSquare, Calendar, ChevronRight, MessageCircle } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { S3Image } from '../ui/S3Image';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Resident {
@@ -86,10 +87,11 @@ export function ResidentCard({
             onClick={() => onViewProfile(resident.id)}
           >
             {resident.photo ? (
-              <img 
-                src={resident.photo} 
+              <S3Image 
+                s3Key={resident.photo} 
                 alt={resident.name} 
                 className="w-full h-full object-cover"
+                fallbackSrc={`data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" fill="#e2e8f0"/><text x="24" y="30" text-anchor="middle" fill="#64748b" font-family="sans-serif" font-size="16" font-weight="500">${initials}</text></svg>`)}`}
               />
             ) : (
               <div className="w-full h-full bg-terrii-blue flex items-center justify-center text-terrii-text-primary font-medium">

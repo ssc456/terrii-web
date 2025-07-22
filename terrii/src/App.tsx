@@ -10,7 +10,11 @@ import { MessagesScreen } from './screens/MessagesScreen';
 import { MomentsScreen } from './screens/MomentsScreen';
 import { CommunityScreen } from './screens/CommunityScreen';
 import { CareHomeSelectionScreen } from './screens/CareHomeSelectionScreen';
+import { SuperAdminDashboard } from './screens/SuperAdminDashboard';
+import { CareHomeManagement } from './screens/CareHomeManagement';
+import { UserManagement } from './screens/UserManagement';
 import { TerriiOnboarding } from './components/TerriiOnboarding';
+import './utils/testUtils'; // Load test utilities for debugging
 
 // Protected route wrapper
 function ProtectedRoute({ children }: { children: React.ReactElement }) {
@@ -30,9 +34,13 @@ function ProtectedRoute({ children }: { children: React.ReactElement }) {
 
   // Check for superadmin first - this should take precedence
   const location = window.location.pathname;
-  if (isSuperAdmin && (!terriiProfile || !terriiProfile.careHomeID) && location !== '/select-care-home') {
-    console.log('Redirecting superadmin to select-care-home with create=true');
-    return <Navigate to="/select-care-home?create=true" replace />;
+  if (isSuperAdmin && location === '/') {
+    return <Navigate to="/admin" replace />;
+  }
+  
+  if (isSuperAdmin && (!terriiProfile || !terriiProfile.careHomeID) && location !== '/select-care-home' && !location.startsWith('/admin')) {
+    console.log('Redirecting superadmin to admin dashboard');
+    return <Navigate to="/admin" replace />;
   }
   
   // Then handle regular users who need onboarding
@@ -55,7 +63,7 @@ function ProtectedRoute({ children }: { children: React.ReactElement }) {
 }
 
 function AppRoutes() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isSuperAdmin } = useAuth();
   
   return (
     <Routes>
@@ -71,11 +79,50 @@ function AppRoutes() {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Super Admin Routes */}
+      <Route 
+        path="/admin" 
+        element={
+          <ProtectedRoute>
+            {isSuperAdmin ? <SuperAdminDashboard /> : <Navigate to="/" replace />}
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/care-homes" 
+        element={
+          <ProtectedRoute>
+            {isSuperAdmin ? <CareHomeManagement /> : <Navigate to="/" replace />}
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/users" 
+        element={
+          <ProtectedRoute>
+            {isSuperAdmin ? <UserManagement /> : <Navigate to="/" replace />}
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/admin/settings" 
+        element={
+          <ProtectedRoute>
+            {isSuperAdmin ? (
+              <div className="min-h-screen p-4 flex items-center justify-center">
+                <p className="text-terrii-text-primary">Admin Settings Coming Soon</p>
+              </div>
+            ) : <Navigate to="/" replace />}
+          </ProtectedRoute>
+        } 
+      />
+      
       <Route 
         path="/" 
         element={
           <ProtectedRoute>
-            <HomeScreen />
+            {isSuperAdmin ? <SuperAdminDashboard /> : <HomeScreen />}
           </ProtectedRoute>
         } 
       />

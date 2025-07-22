@@ -20,6 +20,42 @@ export function CareHomeSelectionScreen() {
   const [creatingCareHome, setCreatingCareHome] = useState(false);
   const navigate = useNavigate();
 
+  // Check for super admin "login as" functionality
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const loginAsCareHomeId = urlParams.get('loginAs');
+    const superAdminLoginId = localStorage.getItem('superadmin_login_as_care_home');
+    
+    if (isSuperAdmin && (loginAsCareHomeId || superAdminLoginId)) {
+      const careHomeId = loginAsCareHomeId || superAdminLoginId;
+      console.log('Super admin login as care home:', careHomeId);
+      
+      // Clear the localStorage item
+      localStorage.removeItem('superadmin_login_as_care_home');
+      
+      // Automatically select this care home and navigate
+      if (careHomeId) {
+        setSelectedCareHomeId(careHomeId);
+        
+        // Auto-navigate to home after care home is selected
+        setTimeout(async () => {
+          try {
+            if (terriiProfile) {
+              await updateTerriiProfile({
+                careHomeID: careHomeId
+              });
+            }
+            navigate('/');
+            toast.success('Logged into care home as super admin');
+          } catch (error) {
+            console.error('Error updating profile for super admin login:', error);
+            toast.error('Failed to login as care home');
+          }
+        }, 1000);
+      }
+    }
+  }, [isSuperAdmin, terriiProfile, updateTerriiProfile, navigate]);
+
   // Log initial state on component mount
   useEffect(() => {
     console.log('CareHomeSelectionScreen initial state:');

@@ -1,43 +1,114 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { residents } from '../mock/residents';
 import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs';
+import { S3Image } from '../components/ui/S3Image';
+import { ResidentDialog } from '../components/residents/ResidentDialog';
+import { QuickUpdateDialog } from '../components/residents/QuickUpdateDialog';
 import { BottomNav } from '../components/layout/BottomNav';
+import { getResidentWithFullData, addResidentActivityWithUpdate } from '../lib/terriiApi';
 import { toast } from 'sonner';
 import { 
-  ArrowLeft, MessageSquare, Calendar, Edit, CheckCircle, 
-  Clock, FileText, Heart, Users, Activity, AlertCircle
+  calculateResidentStatus
+} from '../lib/statusManager';
+import { 
+  ArrowLeft, 
+  Edit, 
+  MessageSquare, 
+  Plus,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  FileText,
+  Heart,
+  Users,
+  Activity,
+  Phone,
+  Mail
 } from 'lucide-react';
 
 export function ResidentProfileScreen() {
-  const { id } = useParams<{ id: string }>();
+  const { id: residentId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [resident, setResident] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
-  
-  // Find resident by id
-  const resident = residents.find(r => r.id === id);
-  
-  if (!resident) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen p-4">
-        <h2 className="text-xl font-semibold mb-4 text-terrii-text-primary">Resident Not Found</h2>
-        <p className="text-terrii-text-secondary mb-6">The resident you're looking for doesn't exist or has been removed.</p>
-        <Button onClick={() => navigate('/residents')}>
-          Back to Residents
-        </Button>
-      </div>
-    );
-  }
-  
-  // Generate initials for avatar
-  const initials = resident.name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase();
-  
-  // Calculate age from date of birth
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showQuickUpdate, setShowQuickUpdate] = useState(false);
+
+  useEffect(() => {
+    if (residentId) {
+      loadResident();
+    }
+  }, [residentId]);
+
+  const loadResident = async () => {
+    if (!residentId) return;
+
+    try {
+      setLoading(true);
+      const residentData = await getResidentWithFullData(residentId);
+      setResident(residentData);
+    } catch (error) {
+      console.error('Error loading resident:', error);
+      toast.error('Failed to load resident information');
+      navigate('/residents');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBack = () => {
+    navigate('/residents');
+  };
+
+  const handleSendMessage = () => {
+    navigate(`/messages?resident=${residentId}`);
+  };
+
+  const handleQuickUpdate = async () => {
+    setShowQuickUpdate(true);
+  };
+
+  const handleQuickUpdateSubmit = async (data: any) => {
+    if (!residentId) return;
+
+    try {
+      await addResidentActivityWithUpdate(residentId, {
+        activity: data.activity,
+        notes: data.notes,
+        mood: data.mood,
+        healthStatus: data.healthStatus,
+        familyNotified: data.familyNotified,
+        staff: 'Current User' // Replace with actual user name
+      });
+      
+      // Reload resident data
+      await loadResident();
+      toast.success('Quick update saved successfully');
+    } catch (error) {
+      console.error('Error saving quick update:', error);
+      toast.error('Failed to save quick update');
+      throw error; // Re-throw so the dialog can handle it
+    }
+  };
+
+  const handleEditProfile = () => {
+    setShowEditDialog(true);
+  };
+
+  const handleResidentUpdate = (updatedResident: any) => {
+    setResident(updatedResident);
+  };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
   const calculateAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return 'N/A';
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -49,370 +120,454 @@ export function ResidentProfileScreen() {
     
     return age;
   };
-  
-  // Handle sending message to family
-  const handleSendMessage = () => {
-    toast.info(`Sending message to family of ${resident.name}`);
-    // navigate(`/messages/compose?resident=${resident.id}`);
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
   };
-  
-  // Handle quick update
-  const handleQuickUpdate = () => {
-    toast.info(`Creating quick update for ${resident.name}`);
-    // Show a dialog or navigate to quick update form
+
+  const formatDateTime = (dateTimeString: string) => {
+    if (!dateTimeString) return 'N/A';
+    const date = new Date(dateTimeString);
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    
+    if (diffInHours < 1) {
+      const minutes = Math.floor(diffInHours * 60);
+      return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+    } else if (diffInHours < 24) {
+      const hours = Math.floor(diffInHours);
+      return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+    } else if (diffInHours < 48) {
+      return 'Yesterday at ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else {
+      return date.toLocaleDateString() + ' at ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
   };
-  
-  return (
-    <div className="flex flex-col h-screen">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 p-4">
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/residents')}
-            className="p-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
+
+  const getStatusInfo = (lastUpdate: string | null) => {
+    // Calculate the current status based on lastUpdate time
+    const currentStatus = calculateResidentStatus(lastUpdate);
+    
+    // Map to the display format expected by the UI
+    switch (currentStatus) {
+      case 'UP_TO_DATE':
+        return { icon: CheckCircle, color: 'text-terrii-success', bg: 'bg-terrii-success/20', text: 'Up to Date' };
+      case 'NEEDS_UPDATE':
+        return { icon: Clock, color: 'text-terrii-warning', bg: 'bg-terrii-warning/20', text: 'Needs Update' };
+      case 'OVERDUE':
+        return { icon: AlertCircle, color: 'text-terrii-error', bg: 'bg-terrii-error/20', text: 'Overdue' };
+      default:
+        return { icon: CheckCircle, color: 'text-terrii-success', bg: 'bg-terrii-success/20', text: 'Up to Date' };
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-terrii-blue/20 flex items-center justify-center">
+        <div className="animate-pulse text-terrii-text-primary">Loading resident profile...</div>
+      </div>
+    );
+  }
+
+  if (!resident) {
+    return (
+      <div className="min-h-screen bg-terrii-blue/20 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-terrii-text-primary mb-2">Resident not found</h2>
+          <Button onClick={handleBack} variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Residents
           </Button>
-          
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-full overflow-hidden">
+        </div>
+      </div>
+    );
+  }
+
+  const statusInfo = getStatusInfo(resident.lastUpdate);
+  const StatusIcon = statusInfo.icon;
+
+  return (
+    <div className="min-h-screen bg-terrii-blue/20 flex flex-col">
+      {/* Header */}
+      <header className="bg-white shadow-sm">
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              className="p-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSendMessage}
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Message Family
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleQuickUpdate}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Quick Update
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleEditProfile}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <div className="relative w-16 h-16 rounded-full flex items-center justify-center overflow-hidden">
               {resident.photo ? (
-                <img 
-                  src={resident.photo} 
+                <S3Image 
+                  s3Key={resident.photo} 
                   alt={resident.name} 
                   className="w-full h-full object-cover"
+                  fallbackSrc={`data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" fill="#e2e8f0"/><text x="32" y="40" text-anchor="middle" fill="#64748b" font-family="sans-serif" font-size="20" font-weight="500">${getInitials(resident.name)}</text></svg>`)}`}
                 />
               ) : (
-                <div className="w-full h-full bg-terrii-blue flex items-center justify-center text-terrii-text-primary font-medium">
-                  {initials}
+                <div className="w-full h-full bg-terrii-green rounded-full flex items-center justify-center text-terrii-text-primary text-lg font-medium">
+                  {getInitials(resident.name)}
                 </div>
               )}
             </div>
             
-            <div>
-              <h1 className="text-xl font-bold text-terrii-text-primary">{resident.name}</h1>
-              <p className="text-terrii-text-secondary text-sm">
+            <div className="flex-1">
+              <h1 className="text-2xl font-semibold text-terrii-text-primary">{resident.name}</h1>
+              <p className="text-terrii-text-secondary">
                 Room {resident.room} • Age {calculateAge(resident.dateOfBirth)}
               </p>
             </div>
           </div>
         </div>
+
+        {/* Status Banner */}
+        <div className="bg-white px-4 py-2 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <StatusIcon className={`h-4 w-4 ${statusInfo.color}`} />
+                <span className="text-sm font-medium text-terrii-text-primary">
+                  Status: {statusInfo.text}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-terrii-text-secondary">
+                <Clock className="h-4 w-4" />
+                <span>Last updated {resident.lastUpdate ? new Date(resident.lastUpdate).toLocaleString() : 'N/A'}</span>
+              </div>
+            </div>
+            
+            <Badge className={`${statusInfo.bg} ${statusInfo.color} border-0`}>
+              Active Resident
+            </Badge>
+          </div>
+        </div>
       </header>
-      
-      {/* Status Banner */}
-      <div className="bg-white px-4 py-2 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              {resident.status === 'stable' ? (
-                <CheckCircle className="h-4 w-4 text-terrii-success" />
-              ) : resident.status === 'check' ? (
-                <Clock className="h-4 w-4 text-terrii-warning" />
-              ) : (
-                <Clock className="h-4 w-4 text-terrii-error" />
-              )}
-              <span className="text-sm font-medium text-terrii-text-primary">
-                Status: {resident.status === 'stable' ? 'Up to date' : resident.status === 'check' ? 'Needs update' : 'Overdue'}
-              </span>
-            </div>
-            
-            <div className="text-xs text-terrii-text-secondary flex items-center">
-              <Clock className="h-3 w-3 mr-1" />
-              Last updated {new Date(resident.lastUpdate).toLocaleDateString()}
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSendMessage}
-              className="h-8 px-3 border border-gray-200 flex items-center"
-            >
-              <MessageSquare className="h-4 w-4 mr-2" />
-              <span>Message Family</span>
-            </Button>
-            
-            <Button
-              size="sm"
-              onClick={handleQuickUpdate}
-              className="h-8 px-3 bg-terrii-green text-terrii-text-primary hover:bg-terrii-green-dark flex items-center"
-            >
-              <Calendar className="h-4 w-4 mr-2" />
-              <span>Quick Update</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-      
-      {/* Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="flex">
-          <button
-            className={`flex-1 px-4 py-2 text-sm font-medium ${activeTab === 'overview' ? 'border-b-2 border-terrii-blue text-terrii-text-primary' : 'text-terrii-text-secondary'}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            Overview
-          </button>
-          <button
-            className={`flex-1 px-4 py-2 text-sm font-medium ${activeTab === 'medical' ? 'border-b-2 border-terrii-blue text-terrii-text-primary' : 'text-terrii-text-secondary'}`}
-            onClick={() => setActiveTab('medical')}
-          >
-            Medical
-          </button>
-          <button
-            className={`flex-1 px-4 py-2 text-sm font-medium ${activeTab === 'family' ? 'border-b-2 border-terrii-blue text-terrii-text-primary' : 'text-terrii-text-secondary'}`}
-            onClick={() => setActiveTab('family')}
-          >
-            Family
-          </button>
-          <button
-            className={`flex-1 px-4 py-2 text-sm font-medium ${activeTab === 'activities' ? 'border-b-2 border-terrii-blue text-terrii-text-primary' : 'text-terrii-text-secondary'}`}
-            onClick={() => setActiveTab('activities')}
-          >
-            Activities
-          </button>
-        </div>
-      </div>
-      
-      {/* Main content */}
-      <main className="flex-1 overflow-auto bg-terrii-blue/10 p-4 space-y-4">
-        {activeTab === 'overview' && (
-          <div className="space-y-4">
-            {/* Basic Information */}
-            <div className="bg-white rounded-lg shadow-terrii p-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <FileText className="h-5 w-5 text-terrii-text-primary" />
-                <h3 className="text-lg font-medium text-terrii-text-primary">Basic Information</h3>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-terrii-text-secondary">Date of Birth:</span>
-                  <span className="text-terrii-text-primary">{new Date(resident.dateOfBirth).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-terrii-text-secondary">Age:</span>
-                  <span className="text-terrii-text-primary">{calculateAge(resident.dateOfBirth)} years</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-terrii-text-secondary">Room:</span>
-                  <span className="text-terrii-text-primary">{resident.room}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-terrii-text-secondary">Admission Date:</span>
-                  <span className="text-terrii-text-primary">{new Date(resident.admissionDate).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-terrii-text-secondary">Primary Physician:</span>
-                  <span className="text-terrii-text-primary">{resident.medicalInfo.primaryPhysician}</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Care Preferences */}
-            <div className="bg-white rounded-lg shadow-terrii p-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <Heart className="h-5 w-5 text-terrii-text-primary" />
-                <h3 className="text-lg font-medium text-terrii-text-primary">Care Preferences</h3>
-              </div>
-              
-              <div className="space-y-3">
-                <div>
-                  <span className="text-terrii-text-secondary font-medium">Interests:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {resident.carePreferences.interests.map((interest, index) => (
-                      <span 
-                        key={index}
-                        className="inline-block bg-terrii-blue/20 text-terrii-text-primary rounded-full px-2 py-1 text-xs"
-                      >
-                        {interest}
-                      </span>
-                    ))}
+
+      <main className="flex-1 p-4">
+        {/* Main Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="medical">Medical</TabsTrigger>
+            <TabsTrigger value="family">Family</TabsTrigger>
+            <TabsTrigger value="activities">Activities</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Basic Information */}
+              <Card className="shadow-terrii">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileText className="h-5 w-5" />
+                    <span>Basic Information</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-terrii-text-secondary">Date of Birth:</span>
+                    <span className="text-terrii-text-primary">{formatDate(resident.dateOfBirth)}</span>
                   </div>
-                </div>
-                <div>
-                  <span className="text-terrii-text-secondary font-medium">Communication:</span>
-                  <p className="text-sm text-terrii-text-primary mt-1">
-                    {resident.carePreferences.communication}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-terrii-text-secondary font-medium">Mobility:</span>
-                  <p className="text-sm text-terrii-text-primary mt-1">
-                    {resident.carePreferences.mobility}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-terrii-text-secondary font-medium">Daily Routine:</span>
-                  <p className="text-sm text-terrii-text-primary mt-1">
-                    {resident.carePreferences.routine}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {activeTab === 'medical' && (
-          <div className="space-y-4">
-            {/* Medical Conditions */}
-            <div className="bg-white rounded-lg shadow-terrii p-4">
-              <h3 className="text-lg font-medium text-terrii-text-primary mb-3">Medical Conditions</h3>
-              <div className="space-y-2">
-                {resident.medicalInfo.conditions.map((condition, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-terrii-warning rounded-full"></div>
-                    <span className="text-terrii-text-primary">{condition}</span>
+                  <div className="flex justify-between">
+                    <span className="text-terrii-text-secondary">Age:</span>
+                    <span className="text-terrii-text-primary">{calculateAge(resident.dateOfBirth)} years</span>
                   </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Medications */}
-            <div className="bg-white rounded-lg shadow-terrii p-4">
-              <h3 className="text-lg font-medium text-terrii-text-primary mb-3">Current Medications</h3>
-              <div className="space-y-3">
-                {resident.medicalInfo.medications.map((med, index) => (
-                  <div key={index} className="border-l-4 border-terrii-blue pl-3">
-                    <div className="font-medium text-terrii-text-primary">{med.name}</div>
-                    <div className="text-sm text-terrii-text-secondary">{med.dosage}</div>
-                    <div className="text-xs text-terrii-text-light">{med.time}</div>
+                  <div className="flex justify-between">
+                    <span className="text-terrii-text-secondary">Room:</span>
+                    <span className="text-terrii-text-primary">{resident.room}</span>
                   </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Allergies & Restrictions */}
-            <div className="bg-white rounded-lg shadow-terrii p-4">
-              <h3 className="text-lg font-medium text-terrii-text-primary mb-3">Allergies & Dietary Restrictions</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-medium text-terrii-text-primary mb-2">Allergies:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {resident.medicalInfo.allergies.map((allergy, index) => (
-                      <span 
-                        key={index}
-                        className="inline-block bg-terrii-error/20 text-terrii-error rounded-full px-2 py-1 text-xs"
-                      >
-                        {allergy}
-                      </span>
-                    ))}
+                  <div className="flex justify-between">
+                    <span className="text-terrii-text-secondary">Admission Date:</span>
+                    <span className="text-terrii-text-primary">{formatDate(resident.admissionDate)}</span>
                   </div>
-                </div>
-                <div>
-                  <h4 className="font-medium text-terrii-text-primary mb-2">Dietary Restrictions:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {resident.medicalInfo.dietaryRestrictions.map((restriction, index) => (
-                      <span 
-                        key={index}
-                        className="inline-block bg-terrii-info/20 text-terrii-info rounded-full px-2 py-1 text-xs"
-                      >
-                        {restriction}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {activeTab === 'family' && (
-          <div className="space-y-4">
-            {/* Emergency Contact */}
-            <div className="bg-white rounded-lg shadow-terrii p-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <Users className="h-5 w-5 text-terrii-text-primary" />
-                <h3 className="text-lg font-medium text-terrii-text-primary">Family Members & Contacts</h3>
-              </div>
-              
-              {/* Primary Emergency Contact */}
-              <div className="bg-terrii-success/10 p-4 rounded-lg border border-terrii-success/20 mb-4">
-                <h4 className="font-medium text-terrii-text-primary mb-2 flex items-center space-x-2">
-                  <AlertCircle className="h-4 w-4 text-terrii-success" />
-                  <span>Primary Emergency Contact</span>
-                </h4>
-                <div className="space-y-1">
-                  <div className="font-medium text-terrii-text-primary">{resident.emergencyContact.name}</div>
-                  <div className="text-sm text-terrii-text-secondary">{resident.emergencyContact.relationship}</div>
-                  <div className="text-sm text-terrii-text-secondary">{resident.emergencyContact.phone}</div>
-                  <div className="text-sm text-terrii-text-secondary">{resident.emergencyContact.email}</div>
-                </div>
-              </div>
-              
-              {/* All Family Members */}
-              <div className="space-y-3">
-                {resident.familyMembers.map((member, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-terrii-blue/5 rounded-lg">
-                    <div>
-                      <div className="font-medium text-terrii-text-primary">{member.name}</div>
-                      <div className="text-sm text-terrii-text-secondary">{member.relationship}</div>
+                  {resident.medicalInfo?.primaryPhysician && (
+                    <div className="flex justify-between">
+                      <span className="text-terrii-text-secondary">Primary Physician:</span>
+                      <span className="text-terrii-text-primary">{resident.medicalInfo.primaryPhysician}</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-terrii-text-secondary">{member.phone}</span>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Care Preferences */}
+              <Card className="shadow-terrii">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Heart className="h-5 w-5" />
+                    <span>Care Preferences</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {resident.carePreferences?.interests && (
+                    <div>
+                      <span className="text-terrii-text-secondary font-medium">Interests:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {resident.carePreferences.interests.map((interest: string) => (
+                          <Badge key={interest} variant="outline" className="text-xs">
+                            {interest}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {resident.carePreferences?.communication && (
+                    <div>
+                      <span className="text-terrii-text-secondary font-medium">Communication:</span>
+                      <p className="text-sm text-terrii-text-primary mt-1">
+                        {resident.carePreferences.communication}
+                      </p>
+                    </div>
+                  )}
+                  {resident.carePreferences?.mobility && (
+                    <div>
+                      <span className="text-terrii-text-secondary font-medium">Mobility:</span>
+                      <p className="text-sm text-terrii-text-primary mt-1">
+                        {resident.carePreferences.mobility}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="medical" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Medical Conditions */}
+              {resident.medicalInfo?.conditions && (
+                <Card className="shadow-terrii">
+                  <CardHeader>
+                    <CardTitle>Medical Conditions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {resident.medicalInfo.conditions.map((condition: string) => (
+                        <div key={condition} className="flex items-center space-x-2">
+                          <AlertCircle className="h-4 w-4 text-terrii-warning" />
+                          <span className="text-terrii-text-primary">{condition}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Allergies & Restrictions */}
+              <Card className="shadow-terrii">
+                <CardHeader>
+                  <CardTitle>Allergies & Dietary Restrictions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {resident.medicalInfo?.allergies && (
+                      <div>
+                        <h4 className="font-medium text-terrii-text-primary mb-2">Allergies:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {resident.medicalInfo.allergies.map((allergy: string) => (
+                            <Badge key={allergy} className="bg-terrii-error/20 text-terrii-error">
+                              {allergy}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {resident.medicalInfo?.dietaryRestrictions && (
+                      <div>
+                        <h4 className="font-medium text-terrii-text-primary mb-2">Dietary Restrictions:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {resident.medicalInfo.dietaryRestrictions.map((restriction: string) => (
+                            <Badge key={restriction} className="bg-terrii-info/20 text-terrii-info">
+                              {restriction}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="family" className="space-y-4">
+            <Card className="shadow-terrii">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Users className="h-5 w-5" />
+                  <span>Family Members & Contacts</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Emergency Contact */}
+                {resident.emergencyContact && (
+                  <div className="bg-terrii-success/10 p-4 rounded-lg border border-terrii-success/20">
+                    <h4 className="font-medium text-terrii-text-primary mb-2 flex items-center space-x-2">
+                      <AlertCircle className="h-4 w-4 text-terrii-success" />
+                      <span>Primary Emergency Contact</span>
+                    </h4>
+                    <div className="space-y-1">
+                      <div className="font-medium text-terrii-text-primary">{resident.emergencyContact.name}</div>
+                      <div className="text-sm text-terrii-text-secondary">{resident.emergencyContact.relationship}</div>
+                      <div className="flex items-center space-x-4 text-sm text-terrii-text-secondary">
+                        <div className="flex items-center space-x-1">
+                          <Phone className="h-3 w-3" />
+                          <span>{resident.emergencyContact.phone}</span>
+                        </div>
+                        {resident.emergencyContact.email && (
+                          <div className="flex items-center space-x-1">
+                            <Mail className="h-3 w-3" />
+                            <span>{resident.emergencyContact.email}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* All Family Members */}
+                {resident.familyMembers && resident.familyMembers.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-terrii-text-primary mb-3">All Family Members</h4>
+                    <div className="space-y-3">
+                      {resident.familyMembers.map((member: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                          <div>
+                            <div className="font-medium text-terrii-text-primary">{member.name}</div>
+                            <div className="text-sm text-terrii-text-secondary">{member.relationship}</div>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm text-terrii-text-secondary">
+                            {member.phone && (
+                              <div className="flex items-center space-x-1">
+                                <Phone className="h-3 w-3" />
+                                <span>{member.phone}</span>
+                              </div>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSendMessage()}
+                            >
+                              <MessageSquare className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="activities" className="space-y-4">
+            <Card className="shadow-terrii">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Activity className="h-5 w-5" />
+                  <span>Recent Activities</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {resident.activities && resident.activities.length > 0 ? (
+                    // Sort activities by createdAt (most recent first) before displaying
+                    resident.activities
+                      .sort((a: any, b: any) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime())
+                      .map((activity: any, index: number) => (
+                      <div key={activity.id || index} className="flex items-start space-x-4 p-3 bg-terrii-blue/10 rounded-lg">
+                        <div className="w-2 h-2 bg-terrii-success rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-terrii-text-primary">{activity.activity}</h4>
+                            <span className="text-xs text-terrii-text-light">
+                              {formatDateTime(activity.createdAt || activity.date)}
+                            </span>
+                          </div>
+                          {activity.notes && (
+                            <p className="text-sm text-terrii-text-secondary mt-1">{activity.notes}</p>
+                          )}
+                          {activity.staff && (
+                            <div className="text-xs text-terrii-text-light mt-2">
+                              Staff: {activity.staff}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <Activity className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-terrii-text-secondary">No activities recorded yet</p>
                       <Button
-                        variant="outline"
+                        onClick={handleQuickUpdate}
+                        className="mt-4 bg-terrii-green-dark hover:bg-terrii-green text-white"
                         size="sm"
-                        onClick={() => toast.info(`Messaging ${member.name}`)}
-                        className="h-8 px-3 flex items-center"
                       >
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Message
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add First Activity
                       </Button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {activeTab === 'activities' && (
-          <div className="space-y-4">
-            {/* Recent Activities */}
-            <div className="bg-white rounded-lg shadow-terrii p-4">
-              <div className="flex items-center space-x-2 mb-3">
-                <Activity className="h-5 w-5 text-terrii-text-primary" />
-                <h3 className="text-lg font-medium text-terrii-text-primary">Recent Activities</h3>
-              </div>
-              
-              <div className="space-y-4">
-                {resident.recentActivities.map((activity, index) => (
-                  <div key={index} className="flex items-start space-x-4 p-3 bg-terrii-blue/10 rounded-lg">
-                    <div className="w-2 h-2 bg-terrii-success rounded-full mt-2 flex-shrink-0"></div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-terrii-text-primary">{activity.activity}</h4>
-                        <span className="text-xs text-terrii-text-light">{new Date(activity.date).toLocaleDateString()}</span>
-                      </div>
-                      <p className="text-sm text-terrii-text-secondary mt-1">{activity.notes}</p>
-                      <div className="text-xs text-terrii-text-light mt-2">
-                        Staff: {activity.staff}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="mt-4 flex justify-center">
-                <Button 
-                  onClick={() => toast.info(`Adding new activity for ${resident.name}`)}
-                  className="h-9 px-4 bg-terrii-green-dark hover:bg-terrii-green text-terrii-text-primary flex items-center"
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Add Activity
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
-      
+
       {/* Bottom Navigation */}
       <BottomNav />
+
+      {/* Edit Dialog */}
+      <ResidentDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        resident={resident}
+        onSuccess={handleResidentUpdate}
+      />
+
+      {/* Quick Update Dialog */}
+      <QuickUpdateDialog
+        open={showQuickUpdate}
+        onOpenChange={setShowQuickUpdate}
+        residentName={resident?.name || ''}
+        onSubmit={handleQuickUpdateSubmit}
+      />
     </div>
   );
 }
