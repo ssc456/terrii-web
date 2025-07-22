@@ -43,4 +43,9 @@ amplify-gradle-config.json
 amplifytools.xcconfig
 .secret-*
 **.sample
+
+# TERRii specific - exclude entire amplify folder from repo
+amplify/
+team-provider-info.json
+.amplifyrc
 #amplify-do-not-edit-end
