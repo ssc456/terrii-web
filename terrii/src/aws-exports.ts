@@ -34,8 +34,8 @@ const awsmobile: AwsConfig = {
     "aws_appsync_apiKey": "da2-73osaokt25g6rhm7hiwrbv3yb4",
     "aws_cognito_identity_pool_id": "eu-west-2:ecdf0619-3615-4572-a17a-daabc7ac1cd7",
     "aws_cognito_region": "eu-west-2",
-    "aws_user_pools_id": "eu-west-2_vW2Se8xGX",
-    "aws_user_pools_web_client_id": "4b29jqd2s44u7dmhbhp46ajjjn",
+    "aws_user_pools_id": "eu-west-2_7E2IQ9cGF",
+    "aws_user_pools_web_client_id": "g7umgamfgj80jdqcq8vkerv45",
     "oauth": {},
     "aws_cognito_username_attributes": [
         "EMAIL"
