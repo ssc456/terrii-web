@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { MainAppLayout } from './components/layout/MainAppLayout';
 import { LoginScreen } from './screens/LoginScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { ResidentsScreen } from './screens/ResidentsScreen';
@@ -205,7 +206,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <MainAppLayout>
+          <AppRoutes />
+        </MainAppLayout>
         <Toaster position="top-center" />
       </AuthProvider>
     </BrowserRouter>

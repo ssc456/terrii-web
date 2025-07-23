@@ -13,8 +13,6 @@ import { getCareHome, updateCareHome, updateTerriiUserProfile } from '../lib/ter
 import { toast } from 'sonner';
 import { Auth } from '../lib/amplify';
 import { updateUserAttributes } from 'aws-amplify/auth';
-import { Layout } from '../components/layout/Layout';
-import { BottomNav } from '../components/layout/BottomNav';
 
 export function SettingsScreen() {
   const { terriiProfile, user, logout, updateTerriiProfile, isSuperAdmin } = useAuth();
@@ -194,23 +192,22 @@ export function SettingsScreen() {
   };
 
   return (
-    <Layout>
-      <div className="p-4 space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-terrii-text-primary">Settings</h1>
-            <p className="text-terrii-text-secondary">Manage your account and preferences</p>
-          </div>
+    <div className="p-4 space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-terrii-text-primary">Settings</h1>
+          <p className="text-terrii-text-secondary">Manage your account and preferences</p>
         </div>
+      </div>
 
-        {/* Profile Settings */}
-        <Card className="shadow-terrii">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <User className="h-5 w-5" />
-              <span>Profile Settings</span>
-            </CardTitle>
+      {/* Profile Settings */}
+      <Card className="shadow-terrii">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <User className="h-5 w-5" />
+            <span>Profile Settings</span>
+          </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Profile Photo */}
@@ -296,258 +293,254 @@ export function SettingsScreen() {
           </CardContent>
         </Card>
 
-        {/* Care Home Management - Only for ADMIN/MANAGER */}
-        {canManageCareHome && (
-          <Card className="shadow-terrii">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Building2 className="h-5 w-5" />
-                <span>Care Home Management</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="careHomeName">Care Home Name</Label>
-                  <Input
-                    id="careHomeName"
-                    value={careHomeData.name}
-                    onChange={(e) => setCareHomeData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter care home name"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="careHomeEmail">Email</Label>
-                  <Input
-                    id="careHomeEmail"
-                    type="email"
-                    value={careHomeData.email}
-                    onChange={(e) => setCareHomeData(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="contact@carehome.com"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="careHomeAddress">Address</Label>
-                  <Input
-                    id="careHomeAddress"
-                    value={careHomeData.address}
-                    onChange={(e) => setCareHomeData(prev => ({ ...prev, address: e.target.value }))}
-                    placeholder="Street address"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="careHomeCity">City</Label>
-                  <Input
-                    id="careHomeCity"
-                    value={careHomeData.city}
-                    onChange={(e) => setCareHomeData(prev => ({ ...prev, city: e.target.value }))}
-                    placeholder="City"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="careHomePostCode">Post Code</Label>
-                  <Input
-                    id="careHomePostCode"
-                    value={careHomeData.postCode}
-                    onChange={(e) => setCareHomeData(prev => ({ ...prev, postCode: e.target.value }))}
-                    placeholder="Post code"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="careHomePhone">Phone Number</Label>
-                  <Input
-                    id="careHomePhone"
-                    value={careHomeData.phoneNumber}
-                    onChange={(e) => setCareHomeData(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                    placeholder="+44 1234 567890"
-                  />
-                </div>
-                
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="careHomeWebsite">Website</Label>
-                  <Input
-                    id="careHomeWebsite"
-                    type="url"
-                    value={careHomeData.website}
-                    onChange={(e) => setCareHomeData(prev => ({ ...prev, website: e.target.value }))}
-                    placeholder="https://www.carehome.com"
-                  />
-                </div>
-              </div>
-
-              <Button
-                onClick={handleSaveCareHome}
-                disabled={careHomeLoading}
-                className="w-full bg-terrii-green-dark hover:bg-terrii-green text-terrii-text-primary"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {careHomeLoading ? 'Saving...' : 'Save Care Home Information'}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Notification Settings */}
+      {/* Care Home Management - Only for ADMIN/MANAGER */}
+      {canManageCareHome && (
         <Card className="shadow-terrii">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Bell className="h-5 w-5" />
-              <span>Notification Settings</span>
+              <Building2 className="h-5 w-5" />
+              <span>Care Home Management</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-terrii-text-primary">New Messages</p>
-                <p className="text-sm text-terrii-text-secondary">
-                  Get notified when you receive new messages
-                </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="careHomeName">Care Home Name</Label>
+                <Input
+                  id="careHomeName"
+                  value={careHomeData.name}
+                  onChange={(e) => setCareHomeData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter care home name"
+                />
               </div>
-              <Switch
-                checked={notifications.newMessages}
-                onCheckedChange={(checked) => 
-                  setNotifications(prev => ({ ...prev, newMessages: checked }))
-                }
-              />
+              
+              <div className="space-y-2">
+                <Label htmlFor="careHomeEmail">Email</Label>
+                <Input
+                  id="careHomeEmail"
+                  type="email"
+                  value={careHomeData.email}
+                  onChange={(e) => setCareHomeData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="contact@carehome.com"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="careHomeAddress">Address</Label>
+                <Input
+                  id="careHomeAddress"
+                  value={careHomeData.address}
+                  onChange={(e) => setCareHomeData(prev => ({ ...prev, address: e.target.value }))}
+                  placeholder="Street address"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="careHomeCity">City</Label>
+                <Input
+                  id="careHomeCity"
+                  value={careHomeData.city}
+                  onChange={(e) => setCareHomeData(prev => ({ ...prev, city: e.target.value }))}
+                  placeholder="City"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="careHomePostCode">Post Code</Label>
+                <Input
+                  id="careHomePostCode"
+                  value={careHomeData.postCode}
+                  onChange={(e) => setCareHomeData(prev => ({ ...prev, postCode: e.target.value }))}
+                  placeholder="Post code"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="careHomePhone">Phone Number</Label>
+                <Input
+                  id="careHomePhone"
+                  value={careHomeData.phoneNumber}
+                  onChange={(e) => setCareHomeData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                  placeholder="+44 1234 567890"
+                />
+              </div>
+              
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="careHomeWebsite">Website</Label>
+                <Input
+                  id="careHomeWebsite"
+                  type="url"
+                  value={careHomeData.website}
+                  onChange={(e) => setCareHomeData(prev => ({ ...prev, website: e.target.value }))}
+                  placeholder="https://www.carehome.com"
+                />
+              </div>
             </div>
 
-            <hr className="border-gray-200" />
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-terrii-text-primary">Concern Alerts</p>
-                <p className="text-sm text-terrii-text-secondary">
-                  Get notified about urgent family concerns
-                </p>
-              </div>
-              <Switch
-                checked={notifications.concernAlerts}
-                onCheckedChange={(checked) => 
-                  setNotifications(prev => ({ ...prev, concernAlerts: checked }))
-                }
-              />
-            </div>
-
-            <hr className="border-gray-200" />
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-terrii-text-primary">Daily Digest</p>
-                <p className="text-sm text-terrii-text-secondary">
-                  Receive daily summary of activities
-                </p>
-              </div>
-              <Switch
-                checked={notifications.dailyDigest}
-                onCheckedChange={(checked) => 
-                  setNotifications(prev => ({ ...prev, dailyDigest: checked }))
-                }
-              />
-            </div>
-
-            <hr className="border-gray-200" />
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-terrii-text-primary">Weekly Report</p>
-                <p className="text-sm text-terrii-text-secondary">
-                  Receive weekly care insights report
-                </p>
-              </div>
-              <Switch
-                checked={notifications.weeklyReport}
-                onCheckedChange={(checked) => 
-                  setNotifications(prev => ({ ...prev, weeklyReport: checked }))
-                }
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Security Settings */}
-        <Card className="shadow-terrii">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Shield className="h-5 w-5" />
-              <span>Security</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
             <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => toast.info('Password change feature coming soon')}
+              onClick={handleSaveCareHome}
+              disabled={careHomeLoading}
+              className="w-full bg-terrii-green-dark hover:bg-terrii-green text-terrii-text-primary"
             >
-              Change Password
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => toast.info('Two-factor authentication feature coming soon')}
-            >
-              Enable Two-Factor Authentication
+              <Save className="h-4 w-4 mr-2" />
+              {careHomeLoading ? 'Saving...' : 'Save Care Home Information'}
             </Button>
           </CardContent>
         </Card>
+      )}
 
-        {/* Support */}
-        <Card className="shadow-terrii">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <HelpCircle className="h-5 w-5" />
-              <span>Support</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => toast.info('Help & FAQ feature coming soon')}
-            >
-              Help &amp; FAQ
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => toast.info('Contact support feature coming soon')}
-            >
-              Contact Support
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => toast.info('Issue reporting feature coming soon')}
-            >
-              Report an Issue
-            </Button>
-          </CardContent>
-        </Card>
+      {/* Notification Settings */}
+      <Card className="shadow-terrii">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Bell className="h-5 w-5" />
+            <span>Notification Settings</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-terrii-text-primary">New Messages</p>
+              <p className="text-sm text-terrii-text-secondary">
+                Get notified when you receive new messages
+              </p>
+            </div>
+            <Switch
+              checked={notifications.newMessages}
+              onCheckedChange={(checked) => 
+                setNotifications(prev => ({ ...prev, newMessages: checked }))
+              }
+            />
+          </div>
 
-        {/* Logout */}
-        <Card className="shadow-terrii">
-          <CardContent className="p-4">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Log Out
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Bottom Navigation */}
-      <BottomNav />
-    </Layout>
+          <hr className="border-gray-200" />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-terrii-text-primary">Concern Alerts</p>
+              <p className="text-sm text-terrii-text-secondary">
+                Get notified about urgent family concerns
+              </p>
+            </div>
+            <Switch
+              checked={notifications.concernAlerts}
+              onCheckedChange={(checked) => 
+                setNotifications(prev => ({ ...prev, concernAlerts: checked }))
+              }
+            />
+          </div>
+
+          <hr className="border-gray-200" />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-terrii-text-primary">Daily Digest</p>
+              <p className="text-sm text-terrii-text-secondary">
+                Receive daily summary of activities
+              </p>
+            </div>
+            <Switch
+              checked={notifications.dailyDigest}
+              onCheckedChange={(checked) => 
+                setNotifications(prev => ({ ...prev, dailyDigest: checked }))
+              }
+            />
+          </div>
+
+          <hr className="border-gray-200" />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-terrii-text-primary">Weekly Report</p>
+              <p className="text-sm text-terrii-text-secondary">
+                Receive weekly care insights report
+              </p>
+            </div>
+            <Switch
+              checked={notifications.weeklyReport}
+              onCheckedChange={(checked) => 
+                setNotifications(prev => ({ ...prev, weeklyReport: checked }))
+              }
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Security Settings */}
+      <Card className="shadow-terrii">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Shield className="h-5 w-5" />
+            <span>Security</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => toast.info('Password change feature coming soon')}
+          >
+            Change Password
+          </Button>
+          
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => toast.info('Two-factor authentication feature coming soon')}
+          >
+            Enable Two-Factor Authentication
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Support */}
+      <Card className="shadow-terrii">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <HelpCircle className="h-5 w-5" />
+            <span>Support</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => toast.info('Help & FAQ feature coming soon')}
+          >
+            Help &amp; FAQ
+          </Button>
+          
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => toast.info('Contact support feature coming soon')}
+          >
+            Contact Support
+          </Button>
+          
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => toast.info('Issue reporting feature coming soon')}
+          >
+            Report an Issue
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Logout */}
+      <Card className="shadow-terrii">
+        <CardContent className="p-4">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Log Out
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

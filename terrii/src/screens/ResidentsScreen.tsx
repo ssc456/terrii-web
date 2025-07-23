@@ -6,7 +6,6 @@ import { ResidentDialog } from '../components/residents/ResidentDialog';
 import { QuickUpdateDialog } from '../components/residents/QuickUpdateDialog';
 import { StatusSummary } from '../components/residents/StatusSummary';
 import { StatusHelp } from '../components/residents/StatusHelp';
-import { BottomNav } from '../components/layout/BottomNav';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { toast } from 'sonner';
@@ -195,47 +194,34 @@ export function ResidentsScreen() {
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen">
-        <header className="bg-white border-b border-gray-200 p-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-xl font-bold text-terrii-text-primary">Residents</h1>
-              <p className="text-terrii-text-secondary text-sm">Manage resident information and updates</p>
-            </div>
-          </div>
-        </header>
-        <main className="flex-1 flex items-center justify-center bg-terrii-blue/10">
-          <div className="animate-pulse text-terrii-text-primary">Loading residents...</div>
-        </main>
-        <BottomNav />
+      <div className="p-4 flex items-center justify-center">
+        <div className="animate-pulse text-terrii-text-primary">Loading residents...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="p-4 space-y-4">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 p-4">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-bold text-terrii-text-primary">Residents</h1>
-            <p className="text-terrii-text-secondary text-sm">Manage resident information and updates</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <StatusHelp />
-            <Button 
-              className="bg-terrii-green-dark hover:bg-terrii-green text-terrii-text-primary"
-              onClick={handleAddResident}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add
-            </Button>
-          </div>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-xl font-bold text-terrii-text-primary">Residents</h1>
+          <p className="text-terrii-text-secondary text-sm">Manage resident information and updates</p>
         </div>
-      </header>
+        <div className="flex items-center gap-2">
+          <StatusHelp />
+          <Button 
+            className="bg-terrii-green-dark hover:bg-terrii-green text-terrii-text-primary"
+            onClick={handleAddResident}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add
+          </Button>
+        </div>
+      </div>
       
       {/* Main content */}
-      <main className="flex-1 overflow-auto bg-terrii-blue/10 p-4 space-y-4">
+      <div className="space-y-4">
         {/* Status Summary Cards */}
         <StatusSummary 
           statusCounts={statusCounts} 
@@ -312,10 +298,7 @@ export function ResidentsScreen() {
             ))
           )}
         </div>
-      </main>
-      
-      {/* Bottom Navigation */}
-      <BottomNav />
+      </div>
 
       {/* Resident Dialog */}
       <ResidentDialog
