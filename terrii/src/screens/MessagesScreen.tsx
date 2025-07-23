@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { 
   ArrowLeft, Search, Plus, Filter, Send, Paperclip, 
@@ -12,26 +12,163 @@ import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import { BottomNav } from '../components/layout/BottomNav';
 import { MessageBubble } from '../components/messages/MessageBubble';
-import { messageThreads, messageTemplates } from '../mock/messages';
+import { NewConversationDialog } from '../components/messages/NewConversationDialog';
+import { useAuth } from '../contexts/AuthContext';
+import { 
+  listMessageThreadsByCareHome, 
+  getMessages, 
+  sendMessage,
+  markThreadAsRead,
+  toggleThreadStarred,
+  toggleThreadArchived 
+} from '../lib/terriiApi';
+
+// Convert TerriiMessageThread to UI format
+const mapThreadForUI = (thread: any) => {
+  return {
+    id: thread.id,
+    resident: {
+      id: thread.resident?.id || '',
+      name: thread.resident?.name || 'Unknown Resident',
+      photo: thread.resident?.photo || null,
+      room: thread.resident?.room || 'Unknown'
+    },
+    participants: thread.participants || [],
+    lastMessage: thread.lastMessage ? {
+      content: thread.lastMessage.content,
+      timestamp: new Date(thread.lastMessage.createdAt),
+      sender: thread.lastMessage.sender,
+      isFromFamily: !thread.lastMessage.isSentByStaff
+    } : {
+      content: 'No messages yet',
+      timestamp: new Date(thread.createdAt || Date.now()),
+      sender: 'System',
+      isFromFamily: false
+    },
+    unreadCount: thread.unreadCount || 0,
+    isStarred: thread.isStarred || false,
+    isMuted: false, // Not in schema, defaulting to false
+    isArchived: thread.isArchived || false,
+    messages: [] // Will be loaded separately when thread is selected
+  };
+};
+
+// Convert TerriiMessage to UI format
+const mapMessageForUI = (message: any) => {
+  return {
+    id: message.id,
+    content: message.content,
+    sender: {
+      name: message.sender,
+      role: message.isSentByStaff ? 'Care Staff' : 'Family Member',
+      photo: null
+    },
+    timestamp: new Date(message.createdAt),
+    isOwn: message.isSentByStaff, // Assuming current user is staff
+    status: 'delivered' as const,
+    attachments: message.attachmentURL ? [{
+      type: 'image' as const,
+      url: message.attachmentURL,
+      name: 'attachment'
+    }] : undefined,
+    reactions: message.reactions?.map((reaction: string) => ({
+      type: reaction as 'heart' | 'thumbsUp',
+      count: 1,
+      hasReacted: false
+    }))
+  };
+};
 
 export function MessagesScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { terriiProfile } = useAuth();
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [messageText, setMessageText] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [threads, setThreads] = useState<any[]>([]);
+  const [currentThreadMessages, setCurrentThreadMessages] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [showNewConversationDialog, setShowNewConversationDialog] = useState(false);
   
   // Get current thread
   const currentThread = selectedThread 
-    ? messageThreads.find(t => t.id === selectedThread) 
+    ? threads.find(t => t.id === selectedThread) 
     : null;
+
+  useEffect(() => {
+    loadThreads();
+  }, [terriiProfile]);
+
+  useEffect(() => {
+    if (selectedThread) {
+      loadMessages(selectedThread);
+    }
+  }, [selectedThread]);
+
+  // Handle navigation state for starting new conversation
+  useEffect(() => {
+    const state = location.state as { startConversationForResident?: string };
+    if (state?.startConversationForResident) {
+      setShowNewConversationDialog(true);
+      // Clear the state to prevent reopening on refresh
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate, location.pathname]);
+
+  const loadThreads = async () => {
+    if (!terriiProfile?.careHomeID) {
+      console.warn('No care home ID found for user');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const threadsData = await listMessageThreadsByCareHome(terriiProfile.careHomeID);
+      const mappedThreads = threadsData.map(mapThreadForUI);
+      setThreads(mappedThreads);
+    } catch (error) {
+      console.error('Error loading message threads:', error);
+      toast.error('Failed to load message threads');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadMessages = async (threadId: string) => {
+    try {
+      setLoadingMessages(true);
+      const messagesData = await getMessages(threadId);
+      const mappedMessages = messagesData.map(mapMessageForUI);
+      setCurrentThreadMessages(mappedMessages);
+      
+      // Mark thread as read
+      await markThreadAsRead(threadId);
+      
+      // Update local state
+      setThreads(prev => prev.map(thread => 
+        thread.id === threadId 
+          ? { ...thread, unreadCount: 0 }
+          : thread
+      ));
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      toast.error('Failed to load messages');
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
   
   // Filter threads based on search and filter
-  const filteredThreads = messageThreads.filter(thread => {
+  const filteredThreads = threads.filter(thread => {
     // Search filter
     const matchesSearch = searchQuery === '' || 
       thread.resident.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      thread.participants.some(p => p.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      thread.participants.some((p: string) => p.toLowerCase().includes(searchQuery.toLowerCase())) ||
       thread.lastMessage.content.toLowerCase().includes(searchQuery.toLowerCase());
     
     // Status filter
@@ -59,20 +196,60 @@ export function MessagesScreen() {
   
   const handleBackToInbox = () => {
     setSelectedThread(null);
+    setCurrentThreadMessages([]);
+  };
+
+  const handleNewConversationSuccess = async (threadId: string) => {
+    // Close the dialog
+    setShowNewConversationDialog(false);
+    
+    // Reload threads to include the new one
+    await loadThreads();
+    
+    // Select the new thread
+    setSelectedThread(threadId);
+    
+    // Load messages for the new thread
+    await loadMessages(threadId);
+    
+    toast.success('New conversation created successfully!');
   };
   
-  const handleSendMessage = () => {
-    if (!messageText.trim()) return;
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !selectedThread || sending) return;
     
-    toast.success('Message sent');
-    setMessageText('');
-    
-    // In a real app, we would update the thread with the new message
+    try {
+      setSending(true);
+      const senderName = terriiProfile?.user?.name || 'Care Staff';
+      
+      await sendMessage(selectedThread, messageText, senderName, true); // true = sent by staff
+      
+      toast.success('Message sent');
+      setMessageText('');
+      
+      // Reload messages to show the new one
+      await loadMessages(selectedThread);
+      
+      // Refresh threads list to update last message
+      await loadThreads();
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message');
+    } finally {
+      setSending(false);
+    }
   };
   
   const handleStartNewConversation = () => {
-    toast.info('Starting new conversation');
-    // In a real app, we would show a dialog to select resident and compose message
+    setShowNewConversationDialog(true);
+  };
+
+  const handleConversationCreated = async (threadId: string) => {
+    // Refresh threads list to show the new conversation
+    await loadThreads();
+    // Automatically select the new thread
+    setSelectedThread(threadId);
+    toast.success('New conversation started successfully');
   };
   
   const handleReplyToMessage = (messageId: string) => {
@@ -84,6 +261,36 @@ export function MessagesScreen() {
     toast.success(`Added ${reaction} reaction to message`);
     console.log(`Added ${reaction} reaction to message ${messageId}`);
   };
+
+  const handleToggleStarred = async (threadId: string, isStarred: boolean) => {
+    try {
+      await toggleThreadStarred(threadId, !isStarred);
+      setThreads(prev => prev.map(thread => 
+        thread.id === threadId 
+          ? { ...thread, isStarred: !isStarred }
+          : thread
+      ));
+      toast.success(isStarred ? 'Removed from starred' : 'Added to starred');
+    } catch (error) {
+      console.error('Error toggling starred:', error);
+      toast.error('Failed to update starred status');
+    }
+  };
+
+  const handleToggleArchived = async (threadId: string, isArchived: boolean) => {
+    try {
+      await toggleThreadArchived(threadId, !isArchived);
+      setThreads(prev => prev.map(thread => 
+        thread.id === threadId 
+          ? { ...thread, isArchived: !isArchived }
+          : thread
+      ));
+      toast.success(isArchived ? 'Unarchived' : 'Archived');
+    } catch (error) {
+      console.error('Error toggling archived:', error);
+      toast.error('Failed to update archived status');
+    }
+  };
   
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -92,17 +299,25 @@ export function MessagesScreen() {
   const getUnreadCount = (filter: string) => {
     switch (filter) {
       case 'unread':
-        return messageThreads.filter(t => t.unreadCount > 0).length;
+        return threads.filter(t => t.unreadCount > 0).length;
       case 'starred':
-        return messageThreads.filter(t => t.isStarred).length;
+        return threads.filter(t => t.isStarred).length;
       case 'archived':
-        return messageThreads.filter(t => t.isArchived).length;
+        return threads.filter(t => t.isArchived).length;
       case 'urgent':
-        return messageThreads.filter(t => t.unreadCount > 3).length;
+        return threads.filter(t => t.unreadCount > 3).length;
       default:
-        return messageThreads.filter(t => !t.isArchived).length;
+        return threads.filter(t => !t.isArchived).length;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-terrii-blue/20">
+        <div className="animate-pulse text-terrii-text-primary">Loading messages...</div>
+      </div>
+    );
+  }
   
   // Thread view
   if (selectedThread && currentThread) {
@@ -151,14 +366,20 @@ export function MessagesScreen() {
         
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-terrii-blue/5">
-          {currentThread.messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              onReply={handleReplyToMessage}
-              onReact={handleReactToMessage}
-            />
-          ))}
+          {loadingMessages ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-pulse text-terrii-text-secondary">Loading messages...</div>
+            </div>
+          ) : (
+            currentThreadMessages.map((message: any) => (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                onReply={handleReplyToMessage}
+                onReact={handleReactToMessage}
+              />
+            ))
+          )}
         </div>
         
         {/* Updated message input box with proper full width */}
@@ -178,13 +399,8 @@ export function MessagesScreen() {
             variant="ghost" 
             size="icon" 
             className="flex-shrink-0 ml-2"
-            onClick={() => {
-              if (messageText.trim()) {
-                // Send message logic
-                setMessageText('');
-                toast.success('Message sent');
-              }
-            }}
+            onClick={handleSendMessage}
+            disabled={sending || !messageText.trim()}
           >
             <Send className="h-5 w-5 text-terrii" />
           </Button>
@@ -343,6 +559,13 @@ export function MessagesScreen() {
       
       {/* Bottom Navigation */}
       <BottomNav />
+
+      {/* New Conversation Dialog */}
+      <NewConversationDialog
+        isOpen={showNewConversationDialog}
+        onClose={() => setShowNewConversationDialog(false)}
+        onConversationCreated={handleConversationCreated}
+      />
     </div>
   );
 }
@@ -365,12 +588,8 @@ function formatDistanceToNow(date: Date, { addSuffix = false } = {}): string {
   } else if (diffMin > 0) {
     result = `${diffMin}m`;
   } else {
-    result = 'just now';
+    result = 'now';
   }
   
-  if (addSuffix && result !== 'just now') {
-    result += ' ago';
-  }
-  
-  return result;
+  return addSuffix ? `${result} ago` : result;
 }

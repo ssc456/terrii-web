@@ -9,6 +9,7 @@ import { ResidentProfileScreen } from './screens/ResidentProfileScreen';
 import { MessagesScreen } from './screens/MessagesScreen';
 import { MomentsScreen } from './screens/MomentsScreen';
 import { CommunityScreen } from './screens/CommunityScreen';
+import { SettingsScreen } from './screens/SettingsScreen';
 import { CareHomeSelectionScreen } from './screens/CareHomeSelectionScreen';
 import { SuperAdminDashboard } from './screens/SuperAdminDashboard';
 import { CareHomeManagement } from './screens/CareHomeManagement';
@@ -163,6 +164,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <CommunityScreen />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <SettingsScreen />
           </ProtectedRoute>
         }
       />

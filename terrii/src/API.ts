@@ -254,6 +254,7 @@ export enum TerriiUserRole {
   ADMIN = "ADMIN",
   CARE_STAFF = "CARE_STAFF",
   MANAGER = "MANAGER",
+  FAMILY = "FAMILY",
 }
 
 

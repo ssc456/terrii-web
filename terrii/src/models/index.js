@@ -46,7 +46,8 @@ const EnumUserTypes = {
 const TerriiUserRole = {
   "ADMIN": "ADMIN",
   "CARE_STAFF": "CARE_STAFF",
-  "MANAGER": "MANAGER"
+  "MANAGER": "MANAGER",
+  "FAMILY": "FAMILY"
 };
 
 const TerriiResidentStatus = {

@@ -46,7 +46,8 @@ export enum EnumUserTypes {
 export enum TerriiUserRole {
   ADMIN = "ADMIN",
   CARE_STAFF = "CARE_STAFF",
-  MANAGER = "MANAGER"
+  MANAGER = "MANAGER",
+  FAMILY = "FAMILY"
 }
 
 export enum TerriiResidentStatus {
@@ -1763,6 +1764,9 @@ type EagerTerriiResidentFamily = {
   readonly email?: string | null;
   readonly residentID: string;
   readonly resident?: TerriiResident | null;
+  readonly userID?: string | null;
+  readonly user?: User | null;
+  readonly isRegistered?: boolean | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;
 }
@@ -1775,6 +1779,9 @@ type LazyTerriiResidentFamily = {
   readonly email?: string | null;
   readonly residentID: string;
   readonly resident: AsyncItem<TerriiResident | undefined>;
+  readonly userID?: string | null;
+  readonly user: AsyncItem<User | undefined>;
+  readonly isRegistered?: boolean | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;
 }

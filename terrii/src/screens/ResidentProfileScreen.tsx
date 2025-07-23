@@ -8,7 +8,7 @@ import { S3Image } from '../components/ui/S3Image';
 import { ResidentDialog } from '../components/residents/ResidentDialog';
 import { QuickUpdateDialog } from '../components/residents/QuickUpdateDialog';
 import { BottomNav } from '../components/layout/BottomNav';
-import { getResidentWithFullData, addResidentActivityWithUpdate } from '../lib/terriiApi';
+import { getResidentWithFullData, addResidentActivityWithUpdate, deleteResidentFamilyMember } from '../lib/terriiApi';
 import { toast } from 'sonner';
 import { 
   calculateResidentStatus
@@ -26,7 +26,8 @@ import {
   Users,
   Activity,
   Phone,
-  Mail
+  Mail,
+  Trash2
 } from 'lucide-react';
 
 export function ResidentProfileScreen() {
@@ -65,7 +66,7 @@ export function ResidentProfileScreen() {
   };
 
   const handleSendMessage = () => {
-    navigate(`/messages?resident=${residentId}`);
+    navigate('/messages', { state: { startConversationForResident: residentId } });
   };
 
   const handleQuickUpdate = async () => {
@@ -101,6 +102,23 @@ export function ResidentProfileScreen() {
 
   const handleResidentUpdate = (updatedResident: any) => {
     setResident(updatedResident);
+  };
+
+  const handleDeleteFamilyMember = async (familyMemberId: string, familyMemberName: string) => {
+    if (!window.confirm(`Are you sure you want to delete ${familyMemberName} from the family members list?`)) {
+      return;
+    }
+
+    try {
+      await deleteResidentFamilyMember(familyMemberId);
+      toast.success(`${familyMemberName} has been removed from family members`);
+      
+      // Reload resident data to update the family members list
+      await loadResident();
+    } catch (error) {
+      console.error('Error deleting family member:', error);
+      toast.error('Failed to delete family member');
+    }
   };
 
   const getInitials = (name: string) => {
@@ -353,7 +371,7 @@ export function ResidentProfileScreen() {
                       </p>
                     </div>
                   )}
-                  {resident.carePreferences?.mobility && (
+                                    {resident.carePreferences?.mobility && (
                     <div>
                       <span className="text-terrii-text-secondary font-medium">Mobility:</span>
                       <p className="text-sm text-terrii-text-primary mt-1">
@@ -465,7 +483,7 @@ export function ResidentProfileScreen() {
                     <h4 className="font-medium text-terrii-text-primary mb-3">All Family Members</h4>
                     <div className="space-y-3">
                       {resident.familyMembers.map((member: any, index: number) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                        <div key={member.id || index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
                           <div>
                             <div className="font-medium text-terrii-text-primary">{member.name}</div>
                             <div className="text-sm text-terrii-text-secondary">{member.relationship}</div>
@@ -484,6 +502,16 @@ export function ResidentProfileScreen() {
                             >
                               <MessageSquare className="h-4 w-4" />
                             </Button>
+                            {member.id && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteFamilyMember(member.id, member.name)}
+                                className="text-red-600 hover:text-red-700 hover:border-red-300"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       ))}

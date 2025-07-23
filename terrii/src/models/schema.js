@@ -5496,6 +5496,34 @@ export const schema = {
                         "targetName": "residentID"
                     }
                 },
+                "userID": {
+                    "name": "userID",
+                    "isArray": false,
+                    "type": "ID",
+                    "isRequired": false,
+                    "attributes": []
+                },
+                "user": {
+                    "name": "user",
+                    "isArray": false,
+                    "type": {
+                        "model": "User"
+                    },
+                    "isRequired": false,
+                    "attributes": [],
+                    "association": {
+                        "connectionType": "HAS_ONE",
+                        "associatedWith": "id",
+                        "targetName": "userID"
+                    }
+                },
+                "isRegistered": {
+                    "name": "isRegistered",
+                    "isArray": false,
+                    "type": "Boolean",
+                    "isRequired": false,
+                    "attributes": []
+                },
                 "createdAt": {
                     "name": "createdAt",
                     "isArray": false,
@@ -5524,6 +5552,15 @@ export const schema = {
                         "name": "byResident",
                         "fields": [
                             "residentID"
+                        ]
+                    }
+                },
+                {
+                    "type": "key",
+                    "properties": {
+                        "name": "byUser",
+                        "fields": [
+                            "userID"
                         ]
                     }
                 },
@@ -7153,7 +7190,8 @@ export const schema = {
             "values": [
                 "ADMIN",
                 "CARE_STAFF",
-                "MANAGER"
+                "MANAGER",
+                "FAMILY"
             ]
         },
         "TerriiResidentStatus": {
@@ -7167,5 +7205,5 @@ export const schema = {
     },
     "nonModels": {},
     "codegenVersion": "3.4.4",
-    "version": "1c0232d3395d97e3032c028bfc31d5b9"
+    "version": "69ab7afdad6f898d628cac9ce87e88ae"
 };

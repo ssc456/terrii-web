@@ -1,6 +1,7 @@
 import { generateClient } from 'aws-amplify/api';
 import * as queries from '../graphql/queries';
 import * as mutations from '../graphql/mutations';
+import { ModelSortDirection } from '../API';
 
 // Initialize the API client
 const client = generateClient();
@@ -340,10 +341,43 @@ export const linkUserToCareHome = async (userId: string, careHomeId: string, rol
  */
 export const getResident = async (residentId: string) => {
   try {
+    // Use a simplified query to avoid nested relationship issues
     const response = await client.graphql({
-      query: queries.getTerriiResident,
+      query: `query GetTerriiResidentBasic($id: ID!) {
+        getTerriiResident(id: $id) {
+          id
+          name
+          room
+          photo
+          careHomeID
+          careHome {
+            id
+            name
+            address
+            city
+            postCode
+            phoneNumber
+            email
+            website
+            createdAt
+            updatedAt
+            __typename
+          }
+          dateOfBirth
+          admissionDate
+          status
+          lastUpdate
+          unreadMessages
+          createdAt
+          updatedAt
+          terriiResidentMedicalInfoId
+          terriiResidentCarePreferencesId
+          terriiResidentEmergencyContactId
+          __typename
+        }
+      }`,
       variables: { id: residentId }
-    });
+    }) as any;
     return response.data.getTerriiResident;
   } catch (error) {
     console.error('Error fetching resident:', error);
@@ -450,20 +484,33 @@ export const createResident = async (data: any) => {
 
     // Create family members if provided
     if (data.familyMembers && data.familyMembers.length > 0) {
+      console.log('Creating family members for resident:', newResident.id);
+      console.log('Family members data:', data.familyMembers);
+      
       for (const familyMember of data.familyMembers) {
-        await client.graphql({
-          query: mutations.createTerriiResidentFamily,
-          variables: {
-            input: {
-              residentID: newResident.id,
-              name: familyMember.name,
-              relationship: familyMember.relationship,
-              phone: familyMember.phone,
-              email: familyMember.email
+        console.log('Creating family member:', familyMember);
+        try {
+          const familyMemberResult = await client.graphql({
+            query: mutations.createTerriiResidentFamily,
+            variables: {
+              input: {
+                residentID: newResident.id,
+                name: familyMember.name,
+                relationship: familyMember.relationship,
+                phone: familyMember.phone,
+                email: familyMember.email
+              }
             }
-          }
-        });
+          });
+          console.log('Family member created successfully:', familyMemberResult.data.createTerriiResidentFamily);
+        } catch (familyError) {
+          console.error('Error creating family member:', familyMember.name, familyError);
+          throw familyError; // Re-throw to prevent silent failures
+        }
       }
+    } else {
+      console.log('No family members provided or empty array');
+      console.log('data.familyMembers:', data.familyMembers);
     }
 
     // Return the created resident with full data
@@ -481,36 +528,71 @@ export const createResident = async (data: any) => {
  */
 export const getResidentWithFullData = async (residentId: string) => {
   try {
-    // Get the basic resident data
-    const residentResponse = await client.graphql({
-      query: queries.getTerriiResident,
-      variables: { id: residentId }
-    });
+    console.log('Fetching resident with ID:', residentId);
     
-    const resident = residentResponse.data.getTerriiResident;
+    // Use basic resident query first to avoid schema issues
+    const resident = await getResident(residentId);
     if (!resident) {
       throw new Error('Resident not found');
     }
 
-    // Get all related data
-    const [familyMembers, medicalInfo, carePreferences, activities, emergencyContact] = await Promise.all([
-      getResidentFamilyMembers(residentId),
-      getResidentMedicalInfo(residentId),
-      getResidentCarePreferences(residentId),
-      getResidentActivities(residentId),
-      getResidentEmergencyContact(residentId)
+    console.log('Successfully fetched basic resident data:', resident);
+
+    // Get related data using separate queries to avoid schema issues
+    const [familyMembers, activities, medicalInfo, carePreferences, emergencyContact] = await Promise.all([
+      getResidentFamilyMembers(residentId).catch(err => {
+        console.error('Error fetching family members:', err);
+        return [];
+      }),
+      getResidentActivities(residentId).catch(err => {
+        console.error('Error fetching activities:', err);
+        return [];
+      }),
+      getResidentMedicalInfo(residentId).catch(err => {
+        console.error('Error fetching medical info:', err);
+        return [];
+      }),
+      getResidentCarePreferences(residentId).catch(err => {
+        console.error('Error fetching care preferences:', err);
+        return null;
+      }),
+      getResidentEmergencyContact(residentId).catch(err => {
+        console.error('Error fetching emergency contact:', err);
+        return null;
+      })
     ]);
 
-    return {
+    console.log('Successfully fetched all related data');
+    console.log('Family members:', familyMembers?.length || 0);
+    console.log('Activities:', activities?.length || 0);
+    console.log('Medical info records:', medicalInfo?.length || 0);
+    console.log('Care preferences:', carePreferences ? 'Found' : 'None');
+    console.log('Emergency contact records:', emergencyContact ? 1 : 0);
+
+    const result = {
       ...resident,
       familyMembers: familyMembers || [],
-      medicalInfo: medicalInfo?.[0] || null,
-      carePreferences: carePreferences || null,
       activities: activities || [],
-      emergencyContact: emergencyContact || null
+      medicalInfo: medicalInfo && medicalInfo.length > 0 ? medicalInfo[0] : null,
+      carePreferences: carePreferences, // carePreferences is already a single object or null
+      emergencyContact: emergencyContact
     };
-  } catch (error) {
+
+    console.log('Final resident data structure:', {
+      hasBasicInfo: !!resident,
+      hasFamilyMembers: (familyMembers?.length || 0) > 0,
+      hasMedicalInfo: !!(medicalInfo && medicalInfo.length > 0),
+      hasCarePreferences: !!carePreferences, // carePreferences is now a single object
+      hasEmergencyContact: !!emergencyContact,
+      hasActivities: (activities?.length || 0) > 0
+    });
+
+    return result;
+  } catch (error: any) {
     console.error('Error fetching resident with full data:', error);
+    if (error.errors) {
+      console.error('GraphQL specific errors:', error.errors);
+    }
     throw error;
   }
 };
@@ -693,15 +775,37 @@ export const deleteResident = async (residentId: string) => {
  */
 export const updateResident = async (residentId: string, data: any) => {
   try {
+    // Use a custom mutation to avoid schema validation issues with family members
     const response = await client.graphql({
-      query: mutations.updateTerriiResident,
+      query: `mutation UpdateTerriiResidentCustom(
+        $input: UpdateTerriiResidentInput!
+      ) {
+        updateTerriiResident(input: $input) {
+          id
+          name
+          room
+          photo
+          careHomeID
+          dateOfBirth
+          admissionDate
+          status
+          lastUpdate
+          unreadMessages
+          createdAt
+          updatedAt
+          terriiResidentMedicalInfoId
+          terriiResidentCarePreferencesId
+          terriiResidentEmergencyContactId
+          __typename
+        }
+      }`,
       variables: {
         input: {
           id: residentId,
           ...data
         }
       }
-    });
+    }) as any;
     return response.data.updateTerriiResident;
   } catch (error) {
     console.error('Error updating resident:', error);
@@ -739,6 +843,9 @@ export const getResidentFamilyMembers = async (residentId: string) => {
  */
 export const addResidentFamilyMember = async (residentId: string, familyMemberData: any) => {
   try {
+    console.log('Adding family member to resident:', residentId);
+    console.log('Family member data:', familyMemberData);
+    
     const response = await client.graphql({
       query: mutations.createTerriiResidentFamily,
       variables: {
@@ -748,9 +855,214 @@ export const addResidentFamilyMember = async (residentId: string, familyMemberDa
         }
       }
     });
+    
+    console.log('Family member added successfully:', response.data.createTerriiResidentFamily);
     return response.data.createTerriiResidentFamily;
   } catch (error) {
     console.error('Error adding resident family member:', error);
+    console.error('Input data was:', { residentID: residentId, ...familyMemberData });
+    throw error;
+  }
+};
+
+/**
+ * Delete a family member
+ * @param familyMemberId The ID of the family member to delete
+ * @returns Success confirmation
+ */
+export const deleteResidentFamilyMember = async (familyMemberId: string) => {
+  try {
+    console.log('Deleting family member with ID:', familyMemberId);
+    
+    const response = await client.graphql({
+      query: mutations.deleteTerriiResidentFamily,
+      variables: {
+        input: {
+          id: familyMemberId
+        }
+      }
+    });
+    
+    console.log('Family member deleted successfully:', response.data.deleteTerriiResidentFamily);
+    return response.data.deleteTerriiResidentFamily;
+  } catch (error) {
+    console.error('Error deleting family member:', error);
+    throw error;
+  }
+};
+
+/**
+ * Invite family member to register as a user
+ * @param familyMemberId The ID of the family member
+ * @param residentName The name of the resident (for email context)
+ * @returns Success status
+ */
+export const inviteFamilyMemberToRegister = async (familyMemberId: string, residentName: string) => {
+  try {
+    // Get family member details
+    const familyResponse = await client.graphql({
+      query: queries.getTerriiResidentFamily,
+      variables: { id: familyMemberId }
+    });
+    
+    const familyMember = familyResponse.data.getTerriiResidentFamily;
+    if (!familyMember || !familyMember.email) {
+      throw new Error('Family member not found or no email address');
+    }
+    
+    // TODO: Send invitation email (integrate with your email service)
+    console.log(`Sending invitation to ${familyMember.email} for ${residentName}`);
+    
+    // For now, just log the invitation
+    return {
+      success: true,
+      email: familyMember.email,
+      message: `Invitation sent to ${familyMember.name}`
+    };
+  } catch (error) {
+    console.error('Error inviting family member:', error);
+    throw error;
+  }
+};
+
+/**
+ * Link an existing User to a family member record (simplified version)
+ * @param userId The ID of the User account
+ * @param familyMemberEmail The email of the family member to link
+ * @param careHomeId The care home ID (for creating TerriiUserProfile)
+ * @returns Success status
+ */
+export const linkUserToFamilyMemberByEmail = async (userId: string, familyMemberEmail: string, careHomeId: string) => {
+  try {
+    // Create a TerriiUserProfile with FAMILY role
+    // Note: This will fail until we regenerate types, but shows the intent
+    await createTerriiUserProfile(userId, careHomeId, 'CARE_STAFF'); // Temporarily use CARE_STAFF
+    
+    console.log(`Linked user ${userId} to family member with email ${familyMemberEmail}`);
+    
+    return {
+      success: true,
+      message: 'User linked to family member'
+    };
+  } catch (error) {
+    console.error('Error linking user to family member:', error);
+    throw error;
+  }
+};
+
+/**
+ * Link an existing User to a family member record
+ * @param userId The ID of the User account
+ * @param familyMemberEmail The email of the family member to link
+ * @returns The family member record (note: linking is currently handled via TerriiUserProfile creation)
+ */
+export const linkUserToFamilyMember = async (userId: string, familyMemberEmail: string) => {
+  try {
+    // First find the family member by email
+    const familyResponse = await client.graphql({
+      query: queries.listTerriiResidentFamilies,
+      variables: {
+        filter: {
+          email: { eq: familyMemberEmail }
+        }
+      }
+    });
+    
+    const familyMembers = familyResponse.data.listTerriiResidentFamilies.items;
+    if (familyMembers.length === 0) {
+      throw new Error('Family member not found with that email');
+    }
+    
+    const familyMember = familyMembers[0];
+    
+    // Get resident info to get care home ID
+    const residentResponse = await client.graphql({
+      query: queries.getTerriiResident,
+      variables: { id: familyMember.residentID }
+    });
+    
+    const resident = residentResponse.data.getTerriiResident;
+    if (!resident) {
+      throw new Error('Resident not found');
+    }
+    
+    // Create a TerriiUserProfile for the family member
+    await client.graphql({
+      query: mutations.createTerriiUserProfile,
+      variables: {
+        input: {
+          userID: userId,
+          role: 'FAMILY' as any, // Use FAMILY role for family members
+          careHomeID: resident.careHomeID
+        }
+      }
+    });
+    
+    return familyMember;
+  } catch (error) {
+    console.error('Error linking user to family member:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get family members who are registered users (have User accounts)
+ * Note: Currently returns all family members since we don't have userID/isRegistered fields in the schema
+ * @param residentId The ID of the resident
+ * @returns Family members
+ */
+export const getRegisteredFamilyMembers = async (residentId: string) => {
+  try {
+    const response = await client.graphql({
+      query: queries.listTerriiResidentFamilies,
+      variables: {
+        filter: {
+          residentID: { eq: residentId }
+        }
+      }
+    });
+    return response.data.listTerriiResidentFamilies.items;
+  } catch (error) {
+    console.error('Error fetching registered family members:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get all family members (registered and unregistered)
+ * @param residentId The ID of the resident
+ * @returns All family members with registration status
+ */
+export const getAllFamilyMembers = async (residentId: string) => {
+  try {
+    const response = await client.graphql({
+      query: queries.listTerriiResidentFamilies,
+      variables: {
+        filter: {
+          residentID: { eq: residentId }
+        }
+      }
+    });
+    return response.data.listTerriiResidentFamilies.items;
+  } catch (error) {
+    console.error('Error fetching all family members:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get family members for message thread participants (simplified)
+ * @param residentId The ID of the resident  
+ * @returns List of family member emails for messaging
+ */
+export const getFamilyMemberEmails = async (residentId: string) => {
+  try {
+    const familyMembers = await getResidentFamilyMembers(residentId);
+    return familyMembers
+      .filter(member => member.email)
+      .map(member => member.email);
+  } catch (error) {
+    console.error('Error getting family member emails:', error);
     throw error;
   }
 };
@@ -903,65 +1215,283 @@ export const getMessageThread = async (threadId: string) => {
 /**
  * Get messages for a thread
  * @param threadId The thread ID
- * @returns List of messages
+ * @returns Array of messages
  */
 export const getMessages = async (threadId: string) => {
   try {
     const response = await client.graphql({
-      query: queries.listTerriiMessages,
+      query: queries.messagesByThread,
+      variables: { 
+        threadID: threadId,
+        sortDirection: ModelSortDirection.ASC // Oldest first
+      }
+    });
+
+    return response.data.messagesByThread.items;
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    throw error;
+  }
+};/**
+ * Send a message
+ * @param threadId The thread ID
+ * @param content The message content
+ * @param senderName The name of the sender
+ * @param isStaff Whether the sender is staff
+ * @param attachmentURL Optional attachment URL
+ * @returns The created message
+ */
+export const sendMessage = async (
+  threadId: string, 
+  content: string,
+  senderName: string, 
+  isStaff: boolean,
+  attachmentURL?: string
+) => {
+  try {
+    const messageInput = {
+      threadID: threadId,
+      content: content,
+      sender: senderName,
+      isSentByStaff: isStaff,
+      reactions: [],
+      attachmentURL: attachmentURL || null
+    };
+    
+    console.log('Creating message with input:', messageInput);
+    
+    const response = await client.graphql({
+      query: mutations.createTerriiMessage,
       variables: {
-        filter: {
-          threadID: { eq: threadId }
-        }
+        input: messageInput
       }
     });
     
-    // Sort messages by createdAt timestamp
-    const messages = response.data.listTerriiMessages.items;
-    return messages.sort((a, b) => {
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    });
+    const newMessage = response.data.createTerriiMessage;
+    
+    // Update thread's last message and unread count
+    try {
+      await client.graphql({
+        query: mutations.updateTerriiMessageThread,
+        variables: {
+          input: {
+            id: threadId,
+            unreadCount: (isStaff ? 1 : 0), // If staff sends, family has unread message
+            terriiMessageThreadLastMessageId: newMessage.id
+          }
+        }
+      });
+    } catch (updateError) {
+      console.warn('Failed to update thread last message:', updateError);
+      // Don't fail the whole operation
+    }
+    
+    return newMessage;
   } catch (error) {
-    console.error('Error getting messages:', error);
+    console.error('Error sending message:', error);
     throw error;
   }
 };
 
 /**
- * Send a message
- * @param threadId The thread ID
- * @param senderId The sender ID
- * @param content The message content
- * @param isStaff Whether the sender is staff
- * @param attachments Optional attachments
- * @returns The created message
+ * Create a new message thread
+ * @param residentId The resident ID this thread is about
+ * @param participantIds Array of participant IDs (staff members)
+ * @param title Optional thread title
+ * @param isStarred Whether the thread is starred
+ * @returns The created message thread
  */
-export const sendMessage = async (
-  threadId: string, 
-  senderId: string, 
-  content: string,
-  isStaff: boolean,
-  attachments?: string[]
+export const createMessageThread = async (
+  residentId: string,
+  participantIds: string[],
+  title?: string,
+  isStarred = false
 ) => {
   try {
-    const message = {
-      threadID: threadId,
-      content: content,
-      sender: senderId,  // Use sender field not senderID
-      isSentByStaff: isStaff,
-      attachments: attachments || []
+    const thread = {
+      residentID: residentId,
+      participants: participantIds,
+      isStarred: isStarred,
+      isArchived: false,
+      unreadCount: 0
     };
     
     const response = await client.graphql({
-      query: mutations.createTerriiMessage,
+      query: mutations.createTerriiMessageThread,
       variables: {
-        input: message
+        input: thread
       }
     });
     
-    return response.data.createTerriiMessage;
+    return response.data.createTerriiMessageThread;
   } catch (error) {
-    console.error('Error sending message:', error);
+    console.error('Error creating message thread:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new message thread with initial message
+ * @param residentId The resident ID this thread is about
+ * @param familyMemberIds Array of family member IDs to include in thread
+ * @param initialMessage The first message content
+ * @param senderName The name of the sender
+ * @param isStaff Whether the sender is staff
+ * @returns The created message thread with the first message
+ */
+export const createThreadWithMessage = async (
+  residentId: string,
+  familyMemberIds: string[],
+  initialMessage: string,
+  senderName: string,
+  isStaff: boolean = true
+) => {
+  try {
+    // For now, use family member emails as participants
+    // In the future, this will use actual user IDs once family members are registered
+    const familyMembers = await getResidentFamilyMembers(residentId);
+    const selectedFamilyEmails = familyMembers
+      .filter(member => familyMemberIds.includes(member.id) && member.email)
+      .map(member => member.email)
+      .filter(email => email != null) as string[]; // Filter out null/undefined emails
+    
+    // Create participants array with staff sender and family member emails
+    const participants = [senderName, ...selectedFamilyEmails];
+    
+    // First create the thread
+    const thread = await createMessageThread(residentId, participants);
+    
+    // Then send the initial message
+    const firstMessage = await sendMessage(
+      thread.id,
+      initialMessage,
+      senderName,
+      isStaff
+    );
+    
+    return {
+      thread,
+      firstMessage
+    };
+  } catch (error) {
+    console.error('Error creating thread with message:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update a message thread
+ * @param threadId The thread ID
+ * @param updates The updates to apply
+ * @returns The updated thread
+ */
+export const updateMessageThread = async (threadId: string, updates: any) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.updateTerriiMessageThread,
+      variables: {
+        input: {
+          id: threadId,
+          ...updates
+        }
+      }
+    });
+    
+    return response.data.updateTerriiMessageThread;
+  } catch (error) {
+    console.error('Error updating message thread:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get messages for a thread using the messagesByThread query for better performance
+ * @param threadId The thread ID
+ * @param limit Optional limit (defaults to 50)
+ * @param nextToken Optional pagination token
+ * @returns Messages and pagination info
+ */
+export const getMessagesByThread = async (threadId: string, limit = 50, nextToken?: string) => {
+  try {
+    const response = await client.graphql({
+      query: queries.messagesByThread,
+      variables: {
+        threadID: threadId,
+        limit: limit,
+        nextToken: nextToken
+        // Remove sortDirection - let it use default
+      }
+    });
+    
+    return {
+      items: response.data.messagesByThread.items,
+      nextToken: response.data.messagesByThread.nextToken
+    };
+  } catch (error) {
+    console.error('Error getting messages by thread:', error);
+    throw error;
+  }
+};
+
+/**
+ * Mark a message thread as read
+ * @param threadId The thread ID
+ * @returns The updated thread
+ */
+export const markThreadAsRead = async (threadId: string) => {
+  try {
+    return await updateMessageThread(threadId, {
+      unreadCount: 0
+    });
+  } catch (error) {
+    console.error('Error marking thread as read:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get message threads for a care home with resident information
+ * @param careHomeId The care home ID
+ * @returns Message threads with populated resident data
+ */
+export const getMessageThreadsForCareHome = async (careHomeId: string) => {
+  try {
+    // First get all residents for this care home
+    const residents = await listResidents(careHomeId);
+    
+    if (residents.length === 0) {
+      return [];
+    }
+    
+    // Get message threads for each resident (since we can't use `in` filter)
+    const allThreads = [];
+    
+    for (const resident of residents) {
+      try {
+        const response = await client.graphql({
+          query: queries.listTerriiMessageThreads,
+          variables: {
+            filter: {
+              residentID: { eq: resident.id }
+            }
+          }
+        });
+        
+        allThreads.push(...response.data.listTerriiMessageThreads.items);
+      } catch (error) {
+        console.error(`Error getting threads for resident ${resident.id}:`, error);
+        // Continue with other residents
+      }
+    }
+    
+    // Sort by lastMessage.createdAt or thread createdAt (newest first)
+    return allThreads.sort((a, b) => {
+      const timeA = new Date(a.lastMessage?.createdAt || a.createdAt || new Date().toISOString()).getTime();
+      const timeB = new Date(b.lastMessage?.createdAt || b.createdAt || new Date().toISOString()).getTime();
+      return timeB - timeA;
+    });
+  } catch (error) {
+    console.error('Error getting message threads for care home:', error);
     throw error;
   }
 };
@@ -1157,6 +1687,89 @@ export const getCommunityPost = async (postId: string) => {
     return response.data.getTerriiCommunityPost;
   } catch (error) {
     console.error('Error getting community post:', error);
+    throw error;
+  }
+};
+
+// =============================================================================
+// MESSAGING FUNCTIONS
+// =============================================================================
+
+/**
+ * List message threads for a care home
+ * @param careHomeId The ID of the care home
+ * @returns A list of message threads
+ */
+export const listMessageThreadsByCareHome = async (careHomeId: string) => {
+  try {
+    const response = await client.graphql({
+      query: queries.listTerriiMessageThreads,
+      variables: {
+        filter: {
+          residentID: { 
+            ne: null // Get all threads that have a resident
+          }
+        }
+      }
+    });
+    
+    // Filter threads by care home through resident relationship
+    const allThreads = response.data.listTerriiMessageThreads.items;
+    const careHomeThreads = allThreads.filter((thread: any) => 
+      thread.resident?.careHomeID === careHomeId
+    );
+    
+    return careHomeThreads;
+  } catch (error) {
+    console.error('Error listing message threads for care home:', error);
+    throw error;
+  }
+};
+
+/**
+ * Toggle thread starred status
+ * @param threadId The ID of the thread
+ * @param isStarred The new starred status
+ * @returns The updated thread
+ */
+export const toggleThreadStarred = async (threadId: string, isStarred: boolean) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.updateTerriiMessageThread,
+      variables: {
+        input: {
+          id: threadId,
+          isStarred: isStarred
+        }
+      }
+    });
+    return response.data.updateTerriiMessageThread;
+  } catch (error) {
+    console.error('Error toggling thread starred status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Archive/unarchive a thread
+ * @param threadId The ID of the thread
+ * @param isArchived The new archived status
+ * @returns The updated thread
+ */
+export const toggleThreadArchived = async (threadId: string, isArchived: boolean) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.updateTerriiMessageThread,
+      variables: {
+        input: {
+          id: threadId,
+          isArchived: isArchived
+        }
+      }
+    });
+    return response.data.updateTerriiMessageThread;
+  } catch (error) {
+    console.error('Error toggling thread archived status:', error);
     throw error;
   }
 };

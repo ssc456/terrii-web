@@ -6,6 +6,7 @@ import { Label } from '../ui/Label';
 import { ImageUpload } from '../ui/ImageUpload';
 import { Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { deleteResidentFamilyMember } from '../../lib/terriiApi';
 
 interface ResidentFormData {
   // Basic Information
@@ -41,6 +42,7 @@ interface ResidentFormData {
 
   // Family Members (additional to emergency contact)
   familyMembers: Array<{
+    id?: string; // Optional ID for existing family members
     name: string;
     relationship: string;
     phone: string;
@@ -54,6 +56,7 @@ interface ResidentFormProps {
   onCancel: () => void;
   isEditing?: boolean;
   loading?: boolean;
+  residentId?: string; // Add resident ID for database operations
 }
 
 export function ResidentForm({ 
@@ -61,7 +64,8 @@ export function ResidentForm({
   onSubmit, 
   onCancel, 
   isEditing = false, 
-  loading = false 
+  loading = false,
+  residentId
 }: ResidentFormProps) {
   const [formData, setFormData] = useState<ResidentFormData>({
     name: initialData?.name || '',
@@ -103,6 +107,9 @@ export function ResidentForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('ResidentForm handleSubmit called with formData:', formData);
+    console.log('Family members in form:', formData.familyMembers);
     
     if (!formData.name.trim() || !formData.room.trim()) {
       toast.error('Name and room are required fields');
@@ -215,7 +222,27 @@ export function ResidentForm({
     }));
   };
 
-  const removeFamilyMember = (index: number) => {
+  const removeFamilyMember = async (index: number) => {
+    const memberToRemove = formData.familyMembers[index];
+    
+    // If we're editing and the family member has an ID, delete from database
+    if (isEditing && memberToRemove.id) {
+      // Show confirmation dialog for existing family members
+      if (!window.confirm(`Are you sure you want to delete ${memberToRemove.name} from the family members list?`)) {
+        return;
+      }
+      
+      try {
+        await deleteResidentFamilyMember(memberToRemove.id);
+        toast.success(`${memberToRemove.name} has been removed from family members`);
+      } catch (error) {
+        console.error('Error deleting family member from database:', error);
+        toast.error('Failed to delete family member from database');
+        return; // Don't remove from UI if database deletion failed
+      }
+    }
+    
+    // Remove from local state
     setFormData(prev => ({
       ...prev,
       familyMembers: prev.familyMembers.filter((_, i) => i !== index)
@@ -563,7 +590,7 @@ export function ResidentForm({
         </div>
         <div className="space-y-4">
           {formData.familyMembers.map((member, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-4">
+            <div key={member.id || index} className="border border-gray-200 rounded-lg p-4">
               <div className="flex justify-between items-center mb-3">
                 <h4 className="font-medium text-terrii-text-primary">Family Member {index + 1}</h4>
                 <Button

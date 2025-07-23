@@ -5251,46 +5251,10 @@ export const listTerriiCareHomes = /* GraphQL */ `query ListTerriiCareHomes(
       email
       website
       adminUsers {
-        items {
-          id
-          userID
-          role
-          careHomeID
-          lastLogin
-          profilePicture
-          user {
-            id
-            name
-            firstName
-            lastName
-            __typename
-          }
-          createdAt
-          updatedAt
-          __typename
-        }
         nextToken
         __typename
       }
       residents {
-        items {
-          id
-          name
-          room
-          photo
-          careHomeID
-          dateOfBirth
-          admissionDate
-          status
-          lastUpdate
-          unreadMessages
-          createdAt
-          updatedAt
-          terriiResidentMedicalInfoId
-          terriiResidentCarePreferencesId
-          terriiResidentEmergencyContactId
-          __typename
-        }
         nextToken
         __typename
       }

@@ -92,8 +92,8 @@ export function ResidentsScreen() {
   };
 
   const handleSendMessage = (id: string) => {
-    toast.info(`Sending message to family of resident ${id}`);
-    // navigate(`/messages/compose?resident=${id}`);
+    // Navigate to messages screen and trigger new conversation for this resident
+    navigate('/messages', { state: { startConversationForResident: id } });
   };
 
   const handleQuickUpdate = async (id: string) => {
