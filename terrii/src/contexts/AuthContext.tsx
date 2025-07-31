@@ -26,12 +26,16 @@ type AuthContextType = {
   isProfileSetup: boolean;
   isLoading: boolean;
   isSuperAdmin: boolean;
+  isInRoleTestMode: boolean;
+  currentTestRole: string | null;
+  actualSuperAdmin: boolean; // Track if user is actually a superadmin vs just testing
   user: any; // Amplify user object
   terriiProfile: TerriiUserProfile | null;
   login: (email: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
   completeProfileSetup: () => void;
   updateTerriiProfile: (data: Partial<TerriiUserProfile>) => Promise<TerriiUserProfile>;
+  exitRoleTestMode: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,12 +46,90 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [terriiProfile, setTerriiProfile] = useState<TerriiUserProfile | null>(null);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [actualSuperAdmin, setActualSuperAdmin] = useState(false);
+  
+  // Role testing state
+  const [isInRoleTestMode, setIsInRoleTestMode] = useState(false);
+  const [currentTestRole, setCurrentTestRole] = useState<string | null>(null);
+  
+  // Computed values for role testing
+  const isSuperAdmin = actualSuperAdmin && !isInRoleTestMode;
 
   // Check for existing auth session on mount
   useEffect(() => {
     checkAuthState();
   }, []);
+
+  // Check for role test mode on component mount and localStorage changes
+  useEffect(() => {
+    const checkRoleTestMode = () => {
+      const testRole = localStorage.getItem('role_test_mode');
+      const testCareHomeId = localStorage.getItem('superadmin_login_as_care_home');
+      
+      console.log('🧪 Checking role test mode:', { 
+        testRole, 
+        testCareHomeId, 
+        actualSuperAdmin, 
+        user: user?.userId,
+        currentIsInRoleTestMode: isInRoleTestMode 
+      });
+      
+      if (testRole && testCareHomeId && actualSuperAdmin) {
+        console.log('🧪 Role test mode detected:', testRole);
+        setIsInRoleTestMode(true);
+        setCurrentTestRole(testRole);
+        
+        // Create a mock terriiProfile with the test role
+        const mockProfile: TerriiUserProfile = {
+          id: 'test-profile',
+          userID: user?.userId || 'test-user',
+          role: testRole,
+          careHomeID: testCareHomeId,
+          __typename: 'TerriiUserProfile'
+        };
+        setTerriiProfile(mockProfile);
+        console.log('🧪 Created mock profile for testing:', mockProfile);
+      } else {
+        // Only clear if we're currently in role test mode but don't have valid localStorage
+        if (isInRoleTestMode && (!testRole || !testCareHomeId)) {
+          console.log('🧪 Clearing role test mode - missing localStorage data');
+          setIsInRoleTestMode(false);
+          setCurrentTestRole(null);
+          // Reset terriiProfile to original if we have one
+          if (actualSuperAdmin) {
+            // For superadmin, we clear the profile since they don't have a regular terriiProfile
+            setTerriiProfile(null);
+          }
+        }
+      }
+    };
+
+    // Run the check immediately
+    checkRoleTestMode();
+    
+    // Listen for our custom role test mode events (for same-tab changes)
+    const handleRoleTestModeChange = () => {
+      console.log('🧪 Custom role test mode event detected, rechecking...');
+      // Small delay to ensure localStorage is updated
+      setTimeout(checkRoleTestMode, 50);
+    };
+    
+    // Listen for localStorage changes from other tabs (this doesn't fire for same-tab changes)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'role_test_mode' || e.key === 'superadmin_login_as_care_home') {
+        console.log('🧪 LocalStorage changed from another tab, rechecking role test mode');
+        checkRoleTestMode();
+      }
+    };
+    
+    window.addEventListener('role-test-mode-changed', handleRoleTestModeChange);
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('role-test-mode-changed', handleRoleTestModeChange);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [actualSuperAdmin, user, isInRoleTestMode]);
 
   const checkAuthState = async () => {
     try {
@@ -62,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userEmail = userAttributes.email || '';
       console.log('User email:', userEmail); // Debug log
       console.log('Is email @acecura.com?', userEmail.endsWith('@acecura.com'));
-      setIsSuperAdmin(userEmail.endsWith('@acecura.com'));
+      setActualSuperAdmin(userEmail.endsWith('@acecura.com'));
       
       // Check for TERRii profile
       try {
@@ -84,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(false);
       setIsProfileSetup(false);
       setTerriiProfile(null);
-      setIsSuperAdmin(false);
+      setActualSuperAdmin(false);
       console.log('User is not signed in');
     }
     setIsLoading(false);
@@ -110,7 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userAttributes = await Auth.fetchUserAttributes();
         const userEmail = userAttributes.email || '';
         console.log('User email from login:', userEmail); // Debug log
-        setIsSuperAdmin(userEmail.endsWith('@acecura.com'));
+        setActualSuperAdmin(userEmail.endsWith('@acecura.com'));
         
         // Check for TERRii profile
         try {
@@ -160,10 +242,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(false);
       setIsProfileSetup(false);
       setTerriiProfile(null);
-      setIsSuperAdmin(false);
+      setActualSuperAdmin(false);
+      setIsInRoleTestMode(false);
+      setCurrentTestRole(null);
+      // Clear any role testing localStorage items
+      localStorage.removeItem('role_test_mode');
+      localStorage.removeItem('superadmin_login_as_care_home');
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;
+    }
+  };
+
+  const exitRoleTestMode = () => {
+    console.log('🧪 Exiting role test mode');
+    localStorage.removeItem('role_test_mode');
+    localStorage.removeItem('superadmin_login_as_care_home');
+    setIsInRoleTestMode(false);
+    setCurrentTestRole(null);
+    
+    // Reset terriiProfile to original if we have one
+    if (actualSuperAdmin) {
+      // For superadmin, we clear the profile since they don't have a regular terriiProfile
+      setTerriiProfile(null);
     }
   };
 
@@ -177,12 +278,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isProfileSetup, 
       isLoading,
       isSuperAdmin,
+      isInRoleTestMode,
+      currentTestRole,
+      actualSuperAdmin,
       user,
       terriiProfile,
       login, 
       logout,
       completeProfileSetup,
-      updateTerriiProfile
+      updateTerriiProfile,
+      exitRoleTestMode
     }}>
       {children}
     </AuthContext.Provider>

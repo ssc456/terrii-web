@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Bell, Filter, Plus, Search, MessageCircle, Users, 
   BarChart3, Heart, Eye, Shield, Pin, Clock, Check, CheckCircle, UserX, MoreHorizontal
@@ -14,18 +14,32 @@ import { Avatar, AvatarFallback } from '../components/ui/Avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/DropdownMenu';
 import { PostCard } from '../components/community/PostCard';
 import { CreatePostDialog } from '../components/community/CreatePostDialog';
-import { communityPosts, communityCategories } from '../mock/community';
-import type { CommunityPost } from '../mock/community';
 import { BottomNav } from '../components/layout/BottomNav';
+import { S3Image } from '../components/ui/S3Image';
+import { toast } from 'sonner';
+import { communityCategories } from '../mock/community';
+import { TerriiCommunityPost, TerriiCommunityComment, TerriiUserRole } from '../API';
+import { 
+  listCommunityPosts, 
+  createCommunityPost, 
+  addCommunityComment, 
+  togglePostLike, 
+  getCommunityPost 
+} from '../lib/terriiApi';
+import { useAuth } from '../contexts/AuthContext';
+import type { CommunityPost } from '../mock/community';
 
 export function CommunityScreen() {
+  const { user, terriiProfile } = useAuth();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
   const [isNoticeBoardMode, setIsNoticeBoardMode] = useState(true);
-  const [posts, setPosts] = useState<CommunityPost[]>(communityPosts);
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [backendPosts, setBackendPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showMemberManagement, setShowMemberManagement] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -34,6 +48,82 @@ export function CommunityScreen() {
     replies: true,
     mentions: true
   });
+
+  // Determine user role
+  const userRole: 'staff' | 'family' = terriiProfile?.role === 'STAFF' ? 'staff' : 'family';
+
+  // Load community posts from backend
+  useEffect(() => {
+    loadCommunityPosts();
+  }, [terriiProfile?.careHomeID]);
+
+  const loadCommunityPosts = async () => {
+    try {
+      setLoading(true);
+      const response = await listCommunityPosts(terriiProfile?.careHomeID);
+      setBackendPosts(response || []);
+      
+      // Transform backend posts to frontend format
+      const transformedPosts = response?.map(transformBackendPost) || [];
+      setPosts(transformedPosts);
+    } catch (error) {
+      console.error('Error loading community posts:', error);
+      setPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const transformBackendPost = (backendPost: any): CommunityPost => {
+    const author = backendPost.createdBy;
+    const isStaff = author?.role === TerriiUserRole.CARE_STAFF || author?.role === TerriiUserRole.ADMIN || author?.role === TerriiUserRole.MANAGER;
+    
+    return {
+      id: backendPost.id,
+      title: backendPost.content.slice(0, 50) + (backendPost.content.length > 50 ? '...' : ''),
+      content: backendPost.content,
+      author: {
+        id: author?.id || 'unknown',
+        name: author?.user?.firstName 
+          ? `${author.user.firstName} ${author.user.lastName || ''}`.trim()
+          : 'Unknown User',
+        role: isStaff ? 'Staff' : 'Family Member',
+        photo: author?.profilePicture || null,
+        isStaff: isStaff
+      },
+      timestamp: new Date(backendPost.createdAt),
+      category: 'general', // Default category - could be enhanced with backend field
+      isPinned: backendPost.isPinned || false,
+      status: backendPost.isPinned ? 'published' as const : 'published' as const,
+      replies: [], // Comments would need separate loading
+      reactions: {
+        likes: {
+          count: backendPost.likes || 0,
+          users: []
+        },
+        hearts: {
+          count: 0,
+          users: []
+        },
+        hasLiked: false,
+        hasHearted: false
+      },
+      tags: (backendPost.tags || []).filter((tag: string | null): tag is string => tag !== null),
+      allowReplies: true,
+      attachments: (backendPost.media || [])
+        .filter((mediaKey: string | null): mediaKey is string => mediaKey !== null)
+        .map((mediaKey: string, index: number) => ({
+          id: `${backendPost.id}_${index}`,
+          type: 'image' as const,
+          url: mediaKey, // This is S3 key, will be handled by S3Image component
+          name: `image_${index}.jpg`
+        })),
+      views: 0, // Could be enhanced with backend view tracking
+      reportCount: 0, // Could be enhanced with backend reporting system
+      media: (backendPost.media || []).filter((mediaKey: string | null): mediaKey is string => mediaKey !== null),
+      isAnnouncement: backendPost.isAnnouncement || false
+    };
+  };
 
   // Mock community members data
   const communityMembers = [
@@ -44,9 +134,6 @@ export function CommunityScreen() {
     { id: 'family2', name: 'Lisa Chen', role: 'Family Member', type: 'family', status: 'active', joinDate: '2024-02-15', residentName: 'Robert Chen' },
     { id: 'family3', name: 'Michael Thompson', role: 'Family Member', type: 'family', status: 'pending', joinDate: '2024-03-01', residentName: 'Margaret Thompson' }
   ];
-
-  // Mock user role - in a real app, this would come from authentication context
-  const userRole: 'staff' | 'family' = 'staff';
 
   // Helper function to get initials from name
   const getInitials = (name: string) => {
@@ -78,38 +165,123 @@ export function CommunityScreen() {
     }
   };
 
-  const handleCreatePost = (postData: any) => {
-    const newPost: CommunityPost = {
-      id: `post_${Date.now()}`,
-      title: postData.title,
-      content: postData.content,
-      author: {
-        id: userRole === 'staff' ? 'staff1' : 'family1', // Mock user ID
-        name: userRole === 'staff' ? 'Sarah Johnson' : 'Susan Thompson', // Mock user name
-        role: userRole === 'staff' ? 'Care Manager' : 'Family Member',
-        photo: null,
-        isStaff: userRole === 'staff',
-      },
-      timestamp: new Date(),
-      category: postData.category,
-      isPinned: false,
-      status: userRole === 'staff' ? 'published' : 'pending_approval',
-      replies: [],
-      reactions: {
-        likes: { count: 0, users: [] },
-        hearts: { count: 0, users: [] },
-        hasLiked: false,
-        hasHearted: false
-      },
-      tags: postData.tags,
-      allowReplies: true,
-      attachments: postData.attachments,
-      views: 0,
-      reportCount: 0
-    };
+  const handleCreatePost = async (postData: any) => {
+    if (!terriiProfile?.id || !terriiProfile?.careHomeID) {
+      toast.error('User authentication required');
+      return;
+    }
 
-    setPosts([newPost, ...posts]);
-    setIsCreateDialogOpen(false);
+    try {
+      // Create post in backend
+      const newBackendPost = await createCommunityPost({
+        content: postData.content,
+        createdByID: terriiProfile.id,
+        careHomeID: terriiProfile.careHomeID,
+        media: postData.attachments?.map((att: any) => att.url) || [],
+        tags: postData.tags || [],
+        isPinned: postData.isPinned || false,
+        isAnnouncement: postData.isAnnouncement || false,
+        mode: userRole === 'staff' ? 'TWO_WAY' : 'NOTICE_BOARD',
+        likes: 0
+      });
+
+      // Transform and add to local state
+      const newPost = transformBackendPost(newBackendPost);
+      setPosts([newPost, ...posts]);
+      setIsCreateDialogOpen(false);
+      toast.success('Post created successfully');
+    } catch (error) {
+      console.error('Failed to create post:', error);
+      toast.error('Failed to create post');
+    }
+  };
+
+  // Handle post like/unlike
+  const handleLikePost = async (postId: string) => {
+    if (!terriiProfile?.id) {
+      toast.error('User authentication required');
+      return;
+    }
+
+    try {
+      // Get current like status from the post
+      const currentPost = posts.find(post => post.id === postId);
+      const hasLiked = currentPost?.reactions.hasLiked || false;
+      const action = hasLiked ? 'unlike' : 'like';
+      
+      await togglePostLike(postId, action);
+      
+      // Update local state optimistically
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? {
+                ...post,
+                reactions: {
+                  ...post.reactions,
+                  likes: {
+                    ...post.reactions.likes,
+                    count: hasLiked 
+                      ? post.reactions.likes.count - 1 
+                      : post.reactions.likes.count + 1
+                  },
+                  hasLiked: !hasLiked
+                }
+              }
+            : post
+        )
+      );
+    } catch (error) {
+      console.error('Failed to toggle like:', error);
+      toast.error('Failed to update like');
+    }
+  };
+
+  // Handle post comment
+  const handleCommentPost = async (postId: string, content: string) => {
+    if (!terriiProfile?.id) {
+      toast.error('User authentication required');
+      return;
+    }
+
+    try {
+      const comment = await addCommunityComment({
+        content,
+        createdByID: terriiProfile.id,
+        postID: postId
+      });
+
+      // Update local state to show new comment
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? {
+                ...post,
+                replies: [
+                  ...post.replies,
+                  {
+                    id: comment.id,
+                    content: comment.content,
+                    author: {
+                      id: terriiProfile.id,
+                      name: terriiProfile.userID || 'You', // You might want to get actual name
+                      role: terriiProfile.role === 'STAFF' ? 'Staff' : 'Family Member',
+                      isStaff: terriiProfile.role === 'STAFF',
+                      photo: terriiProfile.profilePicture || undefined
+                    },
+                    timestamp: new Date(comment.createdAt),
+                    reactions: { likes: 0, hearts: 0 }
+                  }
+                ]
+              }
+            : post
+        )
+      );
+      toast.success('Comment added successfully');
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      toast.error('Failed to add comment');
+    }
   };
 
   const handleSelectChange = (postId: string, selected: boolean) => {
@@ -672,6 +844,8 @@ export function CommunityScreen() {
               userRole={userRole}
               onClick={handlePostClick}
               onAction={handlePostAction}
+              onLike={handleLikePost}
+              onComment={handleCommentPost}
               showCheckbox={userRole === 'staff' && selectedPosts.length > 0}
               isSelected={selectedPosts.includes(post.id)}
               onSelectChange={handleSelectChange}

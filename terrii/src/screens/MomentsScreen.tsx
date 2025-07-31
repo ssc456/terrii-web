@@ -5,20 +5,32 @@ import {
   Plus, Filter, Search, Calendar, MessageSquare, Heart, Share2,
   Edit, Trash2, Archive, CheckCircle, AlertCircle, MessageCircle, Users
 } from 'lucide-react';
-import { BottomNav } from '../components/layout/BottomNav';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs';
 import { MomentCard } from '../components/moments/MomentCard';
 import type { Moment } from '../components/moments/MomentCard';
-import { moments as mockMoments } from '../mock/moments';
 import { CreateMomentDialog } from '../components/moments/CreateMomentDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/Dialog';
 import { Textarea } from '../components/ui/Textarea';
+import { useAuth } from '../contexts/AuthContext';
+import { 
+  listMoments, 
+  createMoment, 
+  updateMoment, 
+  deleteMoment, 
+  toggleMomentLike,
+  addMomentComment,
+  updateMomentPrivacy
+} from '../lib/terriiApi';
+import { listResidents } from '../lib/terriiApi';
 
 export function MomentsScreen() {
-  const [moments, setMoments] = useState<Moment[]>(mockMoments);
+  const { terriiProfile } = useAuth();
+  const [moments, setMoments] = useState<any[]>([]);
+  const [residents, setResidents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingMoment, setEditingMoment] = useState<string | null>(null);
@@ -27,31 +39,96 @@ export function MomentsScreen() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showComments, setShowComments] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
-  
-  const residents = [
-    { id: '1', name: 'Margaret Thompson' },
-    { id: '2', name: 'James Mitchell' },
-    { id: '3', name: 'Dorothy Williams' },
-    { id: '4', name: 'Robert Chen' },
-    { id: '5', name: 'Eleanor Rodriguez' }
-  ];
 
   const categories = [
-    { value: 'all', label: 'All Categories', count: moments.length },
-    { value: 'activity', label: 'Activity', count: moments.filter(m => m.category === 'Activity').length },
-    { value: 'wellness', label: 'Wellness', count: moments.filter(m => m.category === 'Wellness').length },
-    { value: 'social', label: 'Social', count: moments.filter(m => m.category === 'Social').length },
-    { value: 'meal', label: 'Meal', count: moments.filter(m => m.category === 'Meal').length },
-    { value: 'milestone', label: 'Milestone', count: moments.filter(m => m.category === 'Milestone').length }
+    { value: 'all', label: 'All Categories' },
+    { value: 'activity', label: 'Activity' },
+    { value: 'wellness', label: 'Wellness' },
+    { value: 'social', label: 'Social' },
+    { value: 'meal', label: 'Meal' },
+    { value: 'milestone', label: 'Milestone' }
   ];
+
+  // Load moments and residents on component mount
+  useEffect(() => {
+    loadMoments();
+    loadResidents();
+  }, [terriiProfile]);
+
+  const loadMoments = async () => {
+    if (!terriiProfile?.careHomeID) return;
+    
+    try {
+      setLoading(true);
+      const momentsData = await listMoments(terriiProfile.careHomeID);
+      setMoments(momentsData || []);
+    } catch (error) {
+      console.error('Error loading moments:', error);
+      toast.error('Failed to load moments');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadResidents = async () => {
+    if (!terriiProfile?.careHomeID) return;
+    
+    try {
+      const residentsData = await listResidents(terriiProfile.careHomeID);
+      setResidents(residentsData || []);
+    } catch (error) {
+      console.error('Error loading residents:', error);
+      toast.error('Failed to load residents');
+    }
+  };
+
+  // Transform backend moment to frontend format
+  const transformMoment = (backendMoment: any): Moment => {
+    // Parse metadata from content or use defaults
+    const metadata = backendMoment.metadata || {};
+    const lines = backendMoment.content?.split('\n') || ['', ''];
+    const title = metadata.title || lines[0] || 'Untitled Moment';
+    const description = metadata.description || lines.slice(2).join('\n') || backendMoment.content || '';
+    
+    return {
+      id: backendMoment.id,
+      title: title.replace(/^[^\s]+\s/, ''), // Remove emoji from title if present
+      description: description,
+      emoji: metadata.emoji || '',
+      timestamp: new Date(backendMoment.createdAt),
+      category: metadata.category || 'Activity',
+      status: backendMoment.isPrivate ? 'pending_approval' : 'published',
+      author: {
+        name: backendMoment.createdBy?.user?.name || 'Staff Member',
+        role: backendMoment.createdBy?.role || 'Care Staff',
+        photo: backendMoment.createdBy?.profilePicture || null
+      },
+      resident: {
+        name: backendMoment.resident?.name || 'Unknown Resident',
+        photo: backendMoment.resident?.photo || null
+      },
+      likes: backendMoment.likes || 0,
+      comments: [], // Comments would need separate query
+      hasLiked: false, // Would need user-specific logic
+      isSharedWithFamily: !backendMoment.isPrivate,
+      tags: backendMoment.tags || [],
+      photos: backendMoment.media || [],
+      engagement: {
+        views: 0,
+        familyViews: 0,
+        shares: 0
+      }
+    };
+  };
   
   // Filter and sort moments
-  const filteredMoments = moments.filter(moment => {
+  const transformedMoments = moments.map(transformMoment);
+  const filteredMoments = transformedMoments.filter(moment => {
     const matchesSearch = searchQuery === '' || 
       moment.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       moment.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       moment.resident.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      moment.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      (moment.tags && moment.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase())));
     
     const matchesCategory = filterCategory === 'all' || moment.category.toLowerCase() === filterCategory.toLowerCase();
     const matchesStatus = filterStatus === 'all' || moment.status === filterStatus;
@@ -59,49 +136,62 @@ export function MomentsScreen() {
     return matchesSearch && matchesCategory && matchesStatus;
   }).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   
-  const handleLikeMoment = (momentId: string) => {
-    setMoments(prev => prev.map(moment => {
-      if (moment.id === momentId) {
-        return {
-          ...moment,
-          likes: moment.hasLiked ? moment.likes - 1 : moment.likes + 1,
-          hasLiked: !moment.hasLiked
-        };
-      }
-      return moment;
-    }));
-    toast.success(`${moments.find(m => m.id === momentId)?.hasLiked ? 'Removed like from' : 'Added like to'} moment`);
+  const handleLikeMoment = async (momentId: string) => {
+    try {
+      const moment = moments.find(m => m.id === momentId);
+      if (!moment) return;
+      
+      // Toggle like status
+      const action = moment.hasLiked ? 'unlike' : 'like';
+      await toggleMomentLike(momentId, action);
+      
+      // Refresh moments to get updated data
+      await loadMoments();
+      
+      toast.success(`${action === 'like' ? 'Added like to' : 'Removed like from'} moment`);
+    } catch (error) {
+      console.error('Error toggling moment like:', error);
+      toast.error('Failed to update like');
+    }
   };
   
   const handleCommentMoment = (momentId: string) => {
     setShowComments(momentId);
   };
   
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (!newComment.trim() || !showComments) return;
     
-    const commentMoment = moments.find(m => m.id === showComments);
-    if (!commentMoment) return;
-    
-    setMoments(prev => prev.map(moment => {
-      if (moment.id === showComments) {
-        return {
-          ...moment,
-          comments: [...moment.comments, newComment]
-        };
-      }
-      return moment;
-    }));
-    
-    toast.success('Comment added');
-    setNewComment('');
-    setShowComments(null);
+    try {
+      await addMomentComment({
+        content: newComment,
+        momentID: showComments,
+        createdByID: terriiProfile?.id
+      });
+      
+      toast.success('Comment added');
+      setNewComment('');
+      setShowComments(null);
+      
+      // Refresh moments to show new comment
+      await loadMoments();
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      toast.error('Failed to add comment');
+    }
   };
   
-  const handleShareMoment = (momentId: string) => {
-    // Use the momentId
-    console.log(`Sharing moment with ID: ${momentId}`);
-    toast.info('Sharing options opened');
+  const handleShareMoment = async (momentId: string) => {
+    try {
+      // Toggle privacy status to share with family
+      await updateMomentPrivacy(momentId, false);
+      await loadMoments();
+      
+      toast.success('Moment shared with family');
+    } catch (error) {
+      console.error('Error sharing moment:', error);
+      toast.error('Failed to share moment');
+    }
   };
   
   const handleEditMoment = (momentId: string) => {
@@ -109,60 +199,60 @@ export function MomentsScreen() {
     setShowCreateDialog(true);
   };
   
-  const handleDeleteMoment = (momentId: string) => {
-    setMoments(prev => prev.filter(m => m.id !== momentId));
-    toast.success('Moment deleted successfully');
-  };
-  
-  const handleApproveMoment = (momentId: string) => {
-    setMoments(prev => prev.map(moment => {
-      if (moment.id === momentId) {
-        return { ...moment, status: 'published', isSharedWithFamily: true };
-      }
-      return moment;
-    }));
-    toast.success('Moment approved and shared with family!');
-  };
-  
-  const handleCreateMoment = (momentData: any) => {
-    if (editingMoment) {
-      // Update existing moment
-      setMoments(prev => prev.map(moment => {
-        if (moment.id === editingMoment) {
-          return {
-            ...moment,
-            ...momentData,
-            photos: [...(momentData.photos || [])],
-          };
-        }
-        return moment;
-      }));
-      toast.success('Moment updated successfully');
-      setEditingMoment(null);
-    } else {
-      // Create new moment
-      const newMoment: Moment = {
-        ...momentData,
-        author: {
-          name: 'Sarah Johnson',  // In a real app, use current user
-          role: 'Care Assistant',
-          photo: null
-        },
-        likes: 0,
-        comments: [],
-        hasLiked: false,
-        engagement: {
-          views: 0,
-          familyViews: 0,
-          shares: 0
-        }
-      };
-      
-      setMoments(prev => [newMoment, ...prev]);
-      toast.success('Moment created successfully');
+  const handleDeleteMoment = async (momentId: string) => {
+    try {
+      await deleteMoment(momentId);
+      await loadMoments();
+      toast.success('Moment deleted successfully');
+    } catch (error) {
+      console.error('Error deleting moment:', error);
+      toast.error('Failed to delete moment');
     }
   };
   
+  const handleApproveMoment = async (momentId: string) => {
+    try {
+      // Set moment as public (not private) to approve it
+      await updateMomentPrivacy(momentId, false);
+      await loadMoments();
+      toast.success('Moment approved and shared with family!');
+    } catch (error) {
+      console.error('Error approving moment:', error);
+      toast.error('Failed to approve moment');
+    }
+  };
+  
+  const handleCreateMoment = async (momentData: any) => {
+    try {
+      if (editingMoment) {
+        // Update existing moment
+        await updateMoment(editingMoment, {
+          content: momentData.content,
+          media: momentData.media,
+          tags: momentData.tags,
+          isPrivate: momentData.isPrivate
+        });
+        toast.success('Moment updated successfully');
+        setEditingMoment(null);
+      } else {
+        // Create new moment
+        await createMoment({
+          ...momentData,
+          createdByID: terriiProfile?.id,
+          careHomeID: terriiProfile?.careHomeID
+        });
+        toast.success('Moment created successfully');
+      }
+      
+      // Refresh moments list
+      await loadMoments();
+    } catch (error) {
+      console.error('Error creating/updating moment:', error);
+      toast.error('Failed to save moment');
+      throw error; // Re-throw to handle in dialog
+    }
+  };
+
   const getEditingMomentData = () => {
     if (!editingMoment) return null;
     return moments.find(m => m.id === editingMoment) || null;
@@ -170,6 +260,22 @@ export function MomentsScreen() {
   
   // Calculate summary statistics
   const totalMoments = moments.length;
+  const publishedMoments = transformedMoments.filter(m => m.status === 'published').length;
+  const pendingMoments = transformedMoments.filter(m => m.status === 'pending_approval').length;
+  const sharedMoments = transformedMoments.filter(m => m.isSharedWithFamily).length;
+
+  if (loading) {
+    return (
+      <div className="p-4 space-y-4">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-terrii-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-terrii-text-secondary">Loading moments...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
   const totalLikes = moments.reduce((sum, moment) => sum + moment.likes, 0);
   const totalComments = moments.reduce((sum, moment) => sum + moment.comments.length, 0);
   const totalFamilyViews = moments.reduce((sum, moment) => sum + (moment.engagement?.familyViews || 0), 0);
@@ -300,7 +406,7 @@ export function MomentsScreen() {
           <TabsList className="bg-terrii-blue/10">
             {categories.map(category => (
               <TabsTrigger key={category.value} value={category.value}>
-                {category.label} ({category.count})
+                {category.label}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -376,10 +482,13 @@ export function MomentsScreen() {
       {/* Create/Edit Moment Dialog */}
       <CreateMomentDialog
         open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
+        onOpenChange={(open) => {
+          setShowCreateDialog(open);
+          if (!open) setEditingMoment(null);
+        }}
         onCreateMoment={handleCreateMoment}
         editingMoment={getEditingMomentData()}
-        residents={residents}
+        residents={residents.map(r => ({ id: r.id, name: r.name }))}
         categories={categories.filter(c => c.value !== 'all')}
       />
       
@@ -391,7 +500,7 @@ export function MomentsScreen() {
           </DialogHeader>
           
           <div className="space-y-4 py-4 max-h-[50vh] overflow-y-auto">
-            {showComments && moments.find(m => m.id === showComments)?.comments.map((comment, index) => (
+            {showComments && transformedMoments.find(m => m.id === showComments)?.comments.map((comment: any, index: number) => (
               <div key={index} className="bg-gray-50 p-3 rounded-lg">
                 <p className="text-sm">{comment}</p>
               </div>
@@ -413,8 +522,6 @@ export function MomentsScreen() {
           </div>
         </DialogContent>
       </Dialog>
-      
-      <BottomNav />
     </div>
   );
 }

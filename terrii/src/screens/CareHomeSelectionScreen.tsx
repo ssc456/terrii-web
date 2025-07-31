@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { Building, Plus, ArrowRight } from 'lucide-react';
 
 export function CareHomeSelectionScreen() {
-  const { user, terriiProfile, updateTerriiProfile, isSuperAdmin } = useAuth();
+  const { user, terriiProfile, updateTerriiProfile, isSuperAdmin, actualSuperAdmin, isInRoleTestMode, currentTestRole } = useAuth();
   const [careHomes, setCareHomes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCareHomeId, setSelectedCareHomeId] = useState<string | null>(
@@ -24,14 +24,16 @@ export function CareHomeSelectionScreen() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const loginAsCareHomeId = urlParams.get('loginAs');
+    const testRole = urlParams.get('testRole');
     const superAdminLoginId = localStorage.getItem('superadmin_login_as_care_home');
     
-    if (isSuperAdmin && (loginAsCareHomeId || superAdminLoginId)) {
+    if (actualSuperAdmin && (loginAsCareHomeId || superAdminLoginId)) {
       const careHomeId = loginAsCareHomeId || superAdminLoginId;
-      console.log('Super admin login as care home:', careHomeId);
+      console.log('🧪 Super admin login as care home:', careHomeId);
       
-      // Clear the localStorage item
-      localStorage.removeItem('superadmin_login_as_care_home');
+      if (testRole) {
+        console.log('🧪 Role testing mode activated:', testRole);
+      }
       
       // Automatically select this care home and navigate
       if (careHomeId) {
@@ -40,13 +42,19 @@ export function CareHomeSelectionScreen() {
         // Auto-navigate to home after care home is selected
         setTimeout(async () => {
           try {
-            if (terriiProfile) {
+            // For role testing, don't update the actual profile since we have a mock one
+            if (isInRoleTestMode) {
+              console.log('🧪 Role testing mode: skipping profile update, using mock profile');
+            } else if (terriiProfile) {
+              // Only update profile if not in role testing mode
               await updateTerriiProfile({
                 careHomeID: careHomeId
               });
             }
+            
             navigate('/');
-            toast.success('Logged into care home as super admin');
+            const modeText = isInRoleTestMode ? `as ${currentTestRole}` : 'as super admin';
+            toast.success(`Logged into care home ${modeText}`);
           } catch (error) {
             console.error('Error updating profile for super admin login:', error);
             toast.error('Failed to login as care home');
@@ -54,7 +62,7 @@ export function CareHomeSelectionScreen() {
         }, 1000);
       }
     }
-  }, [isSuperAdmin, terriiProfile, updateTerriiProfile, navigate]);
+  }, [actualSuperAdmin, terriiProfile, updateTerriiProfile, navigate, isInRoleTestMode, currentTestRole]);
 
   // Log initial state on component mount
   useEffect(() => {

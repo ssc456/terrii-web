@@ -9,6 +9,7 @@ import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/Avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/DropdownMenu';
+import { S3Image } from '../ui/S3Image';
 import type { CommunityPost } from '../../mock/community';
 
 interface PostCardProps {
@@ -16,6 +17,8 @@ interface PostCardProps {
   userRole: 'staff' | 'family';
   onClick: (postId: string) => void;
   onAction?: (postId: string, action: string) => void;
+  onLike?: (postId: string) => void;
+  onComment?: (postId: string, content: string) => void;
   showCheckbox?: boolean;
   isSelected?: boolean;
   onSelectChange?: (postId: string, selected: boolean) => void;
@@ -26,6 +29,8 @@ export function PostCard({
   userRole,
   onClick,
   onAction,
+  onLike,
+  onComment,
   showCheckbox = false,
   isSelected = false,
   onSelectChange
@@ -176,10 +181,19 @@ export function PostCard({
               {post.content}
             </p>
             
-            {/* Attachments Preview */}
-            {post.attachments.length > 0 && (
+            {/* Media Preview */}
+            {((post.attachments && post.attachments.length > 0) || (post.media && post.media.length > 0)) && (
               <div className="mb-3">
-                {post.attachments[0].type === 'image' && (
+                {/* For new backend posts with S3 media keys */}
+                {post.media && post.media.length > 0 && (
+                  <S3Image 
+                    s3Key={post.media[0]}
+                    alt="Post media"
+                    className="w-full h-40 object-cover rounded-md"
+                  />
+                )}
+                {/* For legacy posts with attachments */}
+                {post.attachments && post.attachments.length > 0 && !post.media && (
                   <img 
                     src={post.attachments[0].url}
                     alt={post.attachments[0].name}
@@ -191,18 +205,36 @@ export function PostCard({
             
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-1 text-terrii-text-light">
+                <button 
+                  className="flex items-center space-x-1 text-terrii-text-light hover:text-terrii-blue transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onLike?.(post.id);
+                  }}
+                  disabled={!onLike}
+                >
                   <ThumbsUp className={`h-4 w-4 ${post.reactions.hasLiked ? 'text-terrii-blue fill-current' : ''}`} />
                   <span>{post.reactions.likes.count}</span>
-                </div>
+                </button>
                 <div className="flex items-center space-x-1 text-terrii-text-light">
                   <Heart className={`h-4 w-4 ${post.reactions.hasHearted ? 'text-terrii-error fill-current' : ''}`} />
                   <span>{post.reactions.hearts.count}</span>
                 </div>
-                <div className="flex items-center space-x-1 text-terrii-text-light">
+                <button 
+                  className="flex items-center space-x-1 text-terrii-text-light hover:text-terrii-primary transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // For now, just trigger a simple comment - in a real app you'd open a comment dialog
+                    const content = prompt('Add a comment:');
+                    if (content && onComment) {
+                      onComment(post.id, content);
+                    }
+                  }}
+                  disabled={!onComment}
+                >
                   <MessageCircle className="h-4 w-4" />
                   <span>{post.replies.length}</span>
-                </div>
+                </button>
                 <div className="flex items-center space-x-1 text-terrii-text-light">
                   <Eye className="h-4 w-4" />
                   <span>{post.views}</span>

@@ -8,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from '../ui/Checkbox';
 import { Label } from '../ui/Label';
 import { Badge } from '../ui/Badge';
+import { ImageUpload } from '../ui/ImageUpload';
+import { S3Image } from '../ui/S3Image';
+import { toast } from 'sonner';
 
 interface CreateMomentDialogProps {
   open: boolean;
@@ -26,73 +29,74 @@ export function CreateMomentDialog({
   residents = [],
   categories = []
 }: CreateMomentDialogProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [momentTitle, setMomentTitle] = useState(editingMoment?.title || '');
   const [emoji, setEmoji] = useState(editingMoment?.emoji || '');
-  const [momentContent, setMomentContent] = useState(editingMoment?.description || '');
-  const [selectedResident, setSelectedResident] = useState(editingMoment?.resident?.id || '');
+  const [momentContent, setMomentContent] = useState(editingMoment?.content || editingMoment?.description || '');
+  const [selectedResident, setSelectedResident] = useState(editingMoment?.residentID || editingMoment?.resident?.id || '');
   const [momentCategory, setMomentCategory] = useState(editingMoment?.category?.toLowerCase() || '');
-  const [shareWithFamily, setShareWithFamily] = useState(editingMoment?.isSharedWithFamily || true);
-  const [requiresApproval, setRequiresApproval] = useState(editingMoment?.status === 'pending_approval' || false);
+  const [shareWithFamily, setShareWithFamily] = useState<boolean>(!editingMoment?.isPrivate || true);
+  const [requiresApproval, setRequiresApproval] = useState(false);
   const [momentTags, setMomentTags] = useState<string[]>(editingMoment?.tags || []);
   const [tagInput, setTagInput] = useState('');
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [existingPhotos, setExistingPhotos] = useState<string[]>(editingMoment?.photos || []);
-  
+  const [mediaKeys, setMediaKeys] = useState<string[]>(editingMoment?.media || []);
+  const [uploading, setUploading] = useState(false);
+
   const handleAddTag = () => {
     if (tagInput.trim() && !momentTags.includes(tagInput.trim())) {
       setMomentTags([...momentTags, tagInput.trim()]);
       setTagInput('');
     }
   };
-  
+
   const handleRemoveTag = (tagToRemove: string) => {
     setMomentTags(momentTags.filter(tag => tag !== tagToRemove));
   };
-  
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files);
-      setUploadedFiles([...uploadedFiles, ...newFiles]);
+
+  const handleImageUpload = (s3Key: string | null) => {
+    if (s3Key) {
+      setMediaKeys(prev => [...prev, s3Key]);
     }
   };
-  
-  const handleRemoveFile = (index: number) => {
-    setUploadedFiles(uploadedFiles.filter((_, i) => i !== index));
+
+  const handleRemoveImage = (index: number) => {
+    setMediaKeys(prev => prev.filter((_, i) => i !== index));
   };
-  
-  const handleRemoveExistingPhoto = (index: number) => {
-    setExistingPhotos(existingPhotos.filter((_, i) => i !== index));
-  };
-  
-  const handleSubmit = () => {
+
+  const handleSubmit = async () => {
     if (!momentTitle.trim() || !momentContent.trim() || !selectedResident || !momentCategory) {
-      // Display error toast
+      toast.error('Please fill in all required fields');
       return;
     }
-    
-    const momentData = {
-      id: editingMoment?.id || Date.now().toString(),
-      title: momentTitle,
-      emoji: emoji,
-      description: momentContent,
-      category: momentCategory.charAt(0).toUpperCase() + momentCategory.slice(1), // Capitalize
-      resident: {
-        id: selectedResident,
-        name: residents.find(r => r.id === selectedResident)?.name || ''
-      },
-      isSharedWithFamily: shareWithFamily,
-      status: requiresApproval ? 'pending_approval' : 'published',
-      tags: momentTags,
-      photos: existingPhotos, // In a real app, you'd handle file uploads to a server
-      timestamp: new Date()
-    };
-    
-    onCreateMoment(momentData);
-    resetForm();
-    onOpenChange(false);
+
+    setUploading(true);
+    try {
+      const momentData = {
+        content: `${emoji ? emoji + ' ' : ''}${momentTitle}\n\n${momentContent}`,
+        residentID: selectedResident,
+        media: mediaKeys.length > 0 ? mediaKeys : null,
+        tags: momentTags.length > 0 ? momentTags : null,
+        isPrivate: !shareWithFamily,
+        // Additional metadata can be stored in content or separate fields
+        metadata: {
+          title: momentTitle,
+          emoji: emoji,
+          description: momentContent,
+          category: momentCategory,
+          requiresApproval: requiresApproval
+        }
+      };
+
+      await onCreateMoment(momentData);
+      resetForm();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error creating moment:', error);
+      toast.error('Failed to create moment');
+    } finally {
+      setUploading(false);
+    }
   };
-  
+
   const resetForm = () => {
     if (!editingMoment) {
       setMomentTitle('');
@@ -104,8 +108,7 @@ export function CreateMomentDialog({
       setRequiresApproval(false);
       setMomentTags([]);
       setTagInput('');
-      setUploadedFiles([]);
-      setExistingPhotos([]);
+      setMediaKeys([]);
     }
   };
   
@@ -228,23 +231,23 @@ export function CreateMomentDialog({
             </div>
           </div>
           
-          {/* File Upload */}
+          {/* Photo Upload */}
           <div className="space-y-2">
             <Label>Photos</Label>
             
-            {/* Existing Photos */}
-            {existingPhotos.length > 0 && (
+            {/* Display uploaded images */}
+            {mediaKeys.length > 0 && (
               <div className="grid grid-cols-3 gap-3 mb-3">
-                {existingPhotos.map((photo, index) => (
+                {mediaKeys.map((s3Key, index) => (
                   <div key={index} className="relative h-24 bg-gray-100 rounded-md overflow-hidden">
-                    <img
-                      src={photo}
-                      alt={`Uploaded ${index}`}
+                    <S3Image
+                      s3Key={s3Key}
+                      alt={`Moment photo ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
                     <button
                       type="button"
-                      onClick={() => handleRemoveExistingPhoto(index)}
+                      onClick={() => handleRemoveImage(index)}
                       className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1"
                     >
                       <X className="h-4 w-4" />
@@ -254,44 +257,12 @@ export function CreateMomentDialog({
               </div>
             )}
             
-            {/* New File Uploads */}
-            {uploadedFiles.length > 0 && (
-              <div className="grid grid-cols-3 gap-3 mb-3">
-                {uploadedFiles.map((file, index) => (
-                  <div key={index} className="relative h-24 bg-gray-100 rounded-md overflow-hidden">
-                    <img
-                      src={URL.createObjectURL(file)}
-                      alt={`Uploaded ${index}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveFile(index)}
-                      className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full py-8 border-dashed"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="h-5 w-5 mr-2" />
-              Upload Photos
-            </Button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              accept="image/*"
-              multiple
-              className="hidden"
+            {/* Image Upload Component */}
+            <ImageUpload
+              onImageChange={handleImageUpload}
+              folder="terrii-moments"
+              placeholder="Upload moment photos"
+              disabled={uploading}
             />
           </div>
           

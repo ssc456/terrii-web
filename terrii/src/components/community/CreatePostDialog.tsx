@@ -13,6 +13,9 @@ import {
   SelectTrigger,
   SelectValue 
 } from '../ui/Select';
+import { useAuth } from '../../contexts/AuthContext';
+import { terriiApi } from '../../lib/terriiApi';
+import { Storage } from 'aws-amplify';
 import type { CommunityCategory } from '../../mock/community';
 
 interface CreatePostDialogProps {

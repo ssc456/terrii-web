@@ -209,9 +209,63 @@ export const getCareHome = async (careHomeId: string) => {
 export const listCareHomes = async () => {
   try {
     console.log('Executing listCareHomes query...');
+    
+    // Use a simplified query that only requests fields that exist
+    const customQuery = `
+      query ListTerriiCareHomes {
+        listTerriiCareHomes {
+          items {
+            id
+            name
+            address
+            city
+            postCode
+            phoneNumber
+            email
+            website
+            adminUsers {
+              items {
+                id
+                userID
+                role
+                createdAt
+                updatedAt
+                __typename
+              }
+              nextToken
+              __typename
+            }
+            residents {
+              items {
+                id
+                name
+                room
+                photo
+                dateOfBirth
+                admissionDate
+                status
+                lastUpdate
+                unreadMessages
+                createdAt
+                updatedAt
+                __typename
+              }
+              nextToken
+              __typename
+            }
+            createdAt
+            updatedAt
+            __typename
+          }
+          nextToken
+          __typename
+        }
+      }
+    `;
+    
     const response = await client.graphql({
-      query: queries.listTerriiCareHomes
-    });
+      query: customQuery
+    }) as any;
 
     console.log('List care homes response:', response);
     console.log('Response data structure:', JSON.stringify(response.data, null, 2));
@@ -1554,6 +1608,162 @@ export const createMoment = async (data: any) => {
 };
 
 /**
+ * Get a single moment by ID
+ * @param momentId The moment ID
+ * @returns The moment
+ */
+export const getMoment = async (momentId: string) => {
+  try {
+    const response = await client.graphql({
+      query: queries.getTerriiMoment,
+      variables: { id: momentId }
+    });
+    
+    return response.data.getTerriiMoment;
+  } catch (error) {
+    console.error('Error getting moment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update a moment
+ * @param momentId The ID of the moment to update
+ * @param data The data to update
+ * @returns The updated moment
+ */
+export const updateMoment = async (momentId: string, data: any) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.updateTerriiMoment,
+      variables: {
+        input: {
+          id: momentId,
+          ...data
+        }
+      }
+    });
+    
+    return response.data.updateTerriiMoment;
+  } catch (error) {
+    console.error('Error updating moment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a moment
+ * @param momentId The ID of the moment to delete
+ * @returns The deleted moment
+ */
+export const deleteMoment = async (momentId: string) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.deleteTerriiMoment,
+      variables: {
+        input: { id: momentId }
+      }
+    });
+    
+    return response.data.deleteTerriiMoment;
+  } catch (error) {
+    console.error('Error deleting moment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Like or unlike a moment
+ * @param momentId The moment ID
+ * @param action 'like' or 'unlike'
+ * @returns The updated moment
+ */
+export const toggleMomentLike = async (momentId: string, action: 'like' | 'unlike') => {
+  try {
+    // First get the current moment
+    const getResponse = await client.graphql({
+      query: queries.getTerriiMoment,
+      variables: { id: momentId }
+    });
+    
+    const moment = getResponse.data.getTerriiMoment;
+    if (!moment) {
+      throw new Error(`Moment with ID ${momentId} not found`);
+    }
+    
+    // Calculate new likes count
+    let newLikesCount = moment.likes || 0;
+    if (action === 'like') {
+      newLikesCount += 1;
+    } else if (action === 'unlike' && newLikesCount > 0) {
+      newLikesCount -= 1;
+    }
+    
+    // Update the moment with new likes count
+    const updateResponse = await client.graphql({
+      query: mutations.updateTerriiMoment,
+      variables: {
+        input: {
+          id: momentId,
+          likes: newLikesCount
+        }
+      }
+    });
+    
+    return updateResponse.data.updateTerriiMoment;
+  } catch (error) {
+    console.error(`Error ${action === 'like' ? 'liking' : 'unliking'} moment:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Add a comment to a moment
+ * @param data The comment data
+ * @returns The created comment
+ */
+export const addMomentComment = async (data: any) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.createTerriiMomentComment,
+      variables: {
+        input: data
+      }
+    });
+    
+    return response.data.createTerriiMomentComment;
+  } catch (error) {
+    console.error('Error adding moment comment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update moment privacy status
+ * @param momentId The moment ID
+ * @param isPrivate Whether the moment should be private
+ * @returns The updated moment
+ */
+export const updateMomentPrivacy = async (momentId: string, isPrivate: boolean) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.updateTerriiMoment,
+      variables: {
+        input: {
+          id: momentId,
+          isPrivate: isPrivate
+        }
+      }
+    });
+    
+    return response.data.updateTerriiMoment;
+  } catch (error) {
+    console.error('Error updating moment privacy:', error);
+    throw error;
+  }
+};
+
+/**
  * List community posts
  * @param careHomeId Optional care home ID to filter by
  * @returns List of community posts
@@ -1770,6 +1980,47 @@ export const toggleThreadArchived = async (threadId: string, isArchived: boolean
     return response.data.updateTerriiMessageThread;
   } catch (error) {
     console.error('Error toggling thread archived status:', error);
+    throw error;
+  }
+};
+
+/**
+ * List all TERRii user profiles (SuperAdmin function)
+ * @returns Array of all TERRii user profiles with user and care home data
+ */
+export const listAllTerriiUserProfiles = async () => {
+  try {
+    const response = await client.graphql({
+      query: queries.listTerriiUserProfiles,
+      variables: {
+        limit: 1000 // Set a high limit to get all profiles
+      }
+    });
+    return response.data.listTerriiUserProfiles.items;
+  } catch (error) {
+    console.error('Error listing all TERRii user profiles:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a TERRii user profile (SuperAdmin function)
+ * @param profileId The ID of the TERRii user profile to delete
+ * @returns The deleted profile data
+ */
+export const deleteTerriiUserProfile = async (profileId: string) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.deleteTerriiUserProfile,
+      variables: {
+        input: {
+          id: profileId
+        }
+      }
+    });
+    return response.data.deleteTerriiUserProfile;
+  } catch (error) {
+    console.error('Error deleting TERRii user profile:', error);
     throw error;
   }
 };

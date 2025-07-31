@@ -20,7 +20,15 @@ import './utils/testUtils'; // Load test utilities for debugging
 
 // Protected route wrapper
 function ProtectedRoute({ children }: { children: React.ReactElement }) {
-  const { isAuthenticated, isLoading, terriiProfile, isSuperAdmin } = useAuth();
+  const { 
+    isAuthenticated, 
+    isLoading, 
+    terriiProfile, 
+    isSuperAdmin, 
+    isInRoleTestMode, 
+    currentTestRole,
+    actualSuperAdmin 
+  } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   
   // Show a loading state while checking auth
@@ -34,19 +42,34 @@ function ProtectedRoute({ children }: { children: React.ReactElement }) {
     return <Navigate to="/login" replace />;
   }
 
-  // Check for superadmin first - this should take precedence
   const location = window.location.pathname;
-  if (isSuperAdmin && location === '/') {
-    return <Navigate to="/admin" replace />;
+  
+  // Handle role testing mode - when superadmin is testing a role, don't redirect to admin
+  if (isInRoleTestMode) {
+    console.log('🧪 In role test mode, allowing normal user flow', { currentTestRole, terriiProfile });
+    // In role test mode, treat as a normal user
+    if (terriiProfile && !terriiProfile.careHomeID && location !== '/select-care-home') {
+      console.log('🧪 Role test mode: redirecting to care home selection');
+      return <Navigate to="/select-care-home" replace />;
+    }
+    // Allow normal flow for role testing
+    console.log('🧪 Role test mode: allowing access to', location);
+    return children;
   }
   
-  if (isSuperAdmin && (!terriiProfile || !terriiProfile.careHomeID) && location !== '/select-care-home' && !location.startsWith('/admin')) {
+  // Check for superadmin first - this should take precedence (only when NOT in role test mode)
+  if (isSuperAdmin && location === '/') {
     console.log('Redirecting superadmin to admin dashboard');
     return <Navigate to="/admin" replace />;
   }
   
+  if (isSuperAdmin && (!terriiProfile || !terriiProfile.careHomeID) && location !== '/select-care-home' && !location.startsWith('/admin')) {
+    console.log('Redirecting superadmin to admin dashboard (no profile)');
+    return <Navigate to="/admin" replace />;
+  }
+  
   // Then handle regular users who need onboarding
-  if (!terriiProfile && !showOnboarding) {
+  if (!terriiProfile && !showOnboarding && !actualSuperAdmin) {
     return (
       <div className="min-h-screen bg-terrii-blue/20 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
@@ -57,7 +80,7 @@ function ProtectedRoute({ children }: { children: React.ReactElement }) {
   }
   
   // Handle users who completed onboarding but need to select a care home
-  if (showOnboarding || (terriiProfile && !terriiProfile.careHomeID && location !== '/select-care-home')) {
+  if ((showOnboarding || (terriiProfile && !terriiProfile.careHomeID)) && location !== '/select-care-home' && !actualSuperAdmin) {
     return <Navigate to="/select-care-home" replace />;
   }
   
@@ -65,7 +88,7 @@ function ProtectedRoute({ children }: { children: React.ReactElement }) {
 }
 
 function AppRoutes() {
-  const { isAuthenticated, isSuperAdmin } = useAuth();
+  const { isAuthenticated, isSuperAdmin, actualSuperAdmin } = useAuth();
   
   return (
     <Routes>
@@ -87,7 +110,7 @@ function AppRoutes() {
         path="/admin" 
         element={
           <ProtectedRoute>
-            {isSuperAdmin ? <SuperAdminDashboard /> : <Navigate to="/" replace />}
+            {actualSuperAdmin ? <SuperAdminDashboard /> : <Navigate to="/" replace />}
           </ProtectedRoute>
         } 
       />
@@ -95,7 +118,7 @@ function AppRoutes() {
         path="/admin/care-homes" 
         element={
           <ProtectedRoute>
-            {isSuperAdmin ? <CareHomeManagement /> : <Navigate to="/" replace />}
+            {actualSuperAdmin ? <CareHomeManagement /> : <Navigate to="/" replace />}
           </ProtectedRoute>
         } 
       />
@@ -103,7 +126,7 @@ function AppRoutes() {
         path="/admin/users" 
         element={
           <ProtectedRoute>
-            {isSuperAdmin ? <UserManagement /> : <Navigate to="/" replace />}
+            {actualSuperAdmin ? <UserManagement /> : <Navigate to="/" replace />}
           </ProtectedRoute>
         } 
       />
@@ -111,7 +134,7 @@ function AppRoutes() {
         path="/admin/settings" 
         element={
           <ProtectedRoute>
-            {isSuperAdmin ? (
+            {actualSuperAdmin ? (
               <div className="min-h-screen p-4 flex items-center justify-center">
                 <p className="text-terrii-text-primary">Admin Settings Coming Soon</p>
               </div>

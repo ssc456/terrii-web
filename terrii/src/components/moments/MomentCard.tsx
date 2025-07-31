@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { S3Image } from '../ui/S3Image';
 
 export interface Moment {
   id: string;
@@ -185,8 +186,8 @@ export function MomentCard({
         {moment.photos && moment.photos.length > 0 && (
           <div className="mb-3">
             {moment.photos.length === 1 ? (
-              <img 
-                src={moment.photos[0]} 
+              <S3Image 
+                s3Key={moment.photos[0]} 
                 alt={moment.title}
                 className="w-full h-64 object-cover rounded-lg"
               />
@@ -194,8 +195,8 @@ export function MomentCard({
               <div className="grid grid-cols-2 gap-2">
                 {moment.photos.slice(0, 4).map((photo, index) => (
                   <div key={index} className={`${index < 2 ? 'h-40' : 'h-32'} relative`}>
-                    <img 
-                      src={photo} 
+                    <S3Image 
+                      s3Key={photo} 
                       alt={`${moment.title} ${index}`}
                       className="w-full h-full object-cover rounded-lg"
                     />

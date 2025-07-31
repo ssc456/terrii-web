@@ -61,6 +61,9 @@ export interface CommunityPost {
   }[];
   views: number;
   reportCount: number;
+  // Backend integration fields
+  media?: string[];
+  isAnnouncement?: boolean;
 }
 
 export const communityPosts: CommunityPost[] = [
