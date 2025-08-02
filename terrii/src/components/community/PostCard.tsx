@@ -77,7 +77,7 @@ export function PostCard({
           
           <Avatar className="w-12 h-12">
             {post.author.photo ? (
-              <AvatarImage src={post.author.photo} alt={post.author.name} />
+              <S3Image s3Key={post.author.photo} alt={post.author.name} className="w-12 h-12 object-cover rounded-full" />
             ) : (
               <AvatarFallback className="bg-terrii-green text-terrii-text-primary">
                 {getInitials(post.author.name)}

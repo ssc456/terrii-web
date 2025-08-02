@@ -22,12 +22,13 @@ import {
   deleteMoment, 
   toggleMomentLike,
   addMomentComment,
-  updateMomentPrivacy
+  updateMomentPrivacy,
+  getUserById
 } from '../lib/terriiApi';
 import { listResidents } from '../lib/terriiApi';
 
 export function MomentsScreen() {
-  const { terriiProfile } = useAuth();
+  const { terriiProfile, user } = useAuth();
   const [moments, setMoments] = useState<any[]>([]);
   const [residents, setResidents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,8 +61,41 @@ export function MomentsScreen() {
     
     try {
       setLoading(true);
+      console.log('Loading moments for care home:', terriiProfile.careHomeID);
       const momentsData = await listMoments(terriiProfile.careHomeID);
-      setMoments(momentsData || []);
+      console.log('Raw moments data from API:', momentsData);
+      
+      // Get unique user IDs from moments to fetch user names
+      const userIds = [...new Set(momentsData?.map(moment => moment.createdBy?.userID).filter(Boolean))];
+      console.log('User IDs to fetch names for:', userIds);
+      
+      // Fetch user data for staff member names
+      const userDataPromises = userIds.map(async (userId) => {
+        if (!userId) return { userId: '', userData: null };
+        
+        try {
+          const userData = await getUserById(userId);
+          return { userId, userData };
+        } catch (error) {
+          console.error(`Error fetching user ${userId}:`, error);
+          return { userId, userData: null };
+        }
+      });
+      
+      const userResults = await Promise.all(userDataPromises);
+      const userMap = new Map();
+      userResults.forEach(({ userId, userData }) => {
+        if (userData) {
+          userMap.set(userId, userData);
+        }
+      });
+      
+      console.log('User data map:', userMap);
+      
+      // Transform moments with user data
+      const transformedMoments = momentsData?.map(moment => transformMoment(moment, userMap)) || [];
+      console.log('Final transformed moments for state:', transformedMoments);
+      setMoments(transformedMoments);
     } catch (error) {
       console.error('Error loading moments:', error);
       toast.error('Failed to load moments');
@@ -83,25 +117,95 @@ export function MomentsScreen() {
   };
 
   // Transform backend moment to frontend format
-  const transformMoment = (backendMoment: any): Moment => {
-    // Parse metadata from content or use defaults
-    const metadata = backendMoment.metadata || {};
-    const lines = backendMoment.content?.split('\n') || ['', ''];
-    const title = metadata.title || lines[0] || 'Untitled Moment';
-    const description = metadata.description || lines.slice(2).join('\n') || backendMoment.content || '';
+  const transformMoment = (backendMoment: any, userMap?: Map<string, any>): Moment => {
+    // Debug the raw backend data first
+    console.log('Raw backend moment data:', backendMoment);
+    
+    // Parse content
+    let title = 'Untitled Moment';
+    let description = '';
+    
+    if (backendMoment.content) {
+      const lines = backendMoment.content.split('\n');
+      title = lines[0] || 'Untitled Moment';
+      description = lines.slice(2).join('\n').trim() || 'No description';
+    }
+    
+    // Get author information from available data
+    let authorName = 'Staff Member';
+    let authorPhoto = null;
+    
+    if (backendMoment.createdBy) {
+      const createdBy = backendMoment.createdBy;
+      const userId = createdBy.userID;
+      const userData = userMap?.get(userId);
+      
+      // Try to get the actual user name from fetched user data
+      if (userData) {
+        if (userData.name) {
+          authorName = userData.name;
+        } else if (userData.firstName && userData.lastName) {
+          authorName = `${userData.firstName} ${userData.lastName}`;
+        } else if (userData.firstName) {
+          authorName = userData.firstName;
+        }
+      } else if (createdBy.user) {
+        // Fallback to nested user data if available (shouldn't happen with current schema)
+        if (createdBy.user.name) {
+          authorName = createdBy.user.name;
+        } else if (createdBy.user.firstName && createdBy.user.lastName) {
+          authorName = `${createdBy.user.firstName} ${createdBy.user.lastName}`;
+        } else if (createdBy.user.firstName) {
+          authorName = createdBy.user.firstName;
+        }
+      } else {
+        // Last fallback - use role info
+        authorName = `${createdBy.role} Staff` || 'Staff Member';
+      }
+      
+      // For photos, try profile picture first, then user image
+      authorPhoto = createdBy.profilePicture || userData?.image || null;
+    }
+    
+    console.log('Author details:', {
+      userId: backendMoment.createdBy?.userID,
+      userData: userMap?.get(backendMoment.createdBy?.userID),
+      finalAuthorName: authorName,
+      finalAuthorPhoto: authorPhoto
+    });
+    
+    console.log('Transformed moment data:', {
+      id: backendMoment.id,
+      title,
+      description,
+      authorName,
+      authorPhoto,
+      resident: backendMoment.resident?.name
+    });
+    
+    // Validate and create timestamp
+    let timestamp = new Date();
+    if (backendMoment.createdAt) {
+      const parsedDate = new Date(backendMoment.createdAt);
+      if (!isNaN(parsedDate.getTime())) {
+        timestamp = parsedDate;
+      } else {
+        console.warn('Invalid createdAt timestamp for moment:', backendMoment.id, backendMoment.createdAt);
+      }
+    }
     
     return {
       id: backendMoment.id,
-      title: title.replace(/^[^\s]+\s/, ''), // Remove emoji from title if present
+      title: title,
       description: description,
-      emoji: metadata.emoji || '',
-      timestamp: new Date(backendMoment.createdAt),
-      category: metadata.category || 'Activity',
+      emoji: '',
+      timestamp: timestamp,
+      category: 'Activity',
       status: backendMoment.isPrivate ? 'pending_approval' : 'published',
       author: {
-        name: backendMoment.createdBy?.user?.name || 'Staff Member',
+        name: authorName,
         role: backendMoment.createdBy?.role || 'Care Staff',
-        photo: backendMoment.createdBy?.profilePicture || null
+        photo: authorPhoto
       },
       resident: {
         name: backendMoment.resident?.name || 'Unknown Resident',
@@ -121,9 +225,9 @@ export function MomentsScreen() {
     };
   };
   
-  // Filter and sort moments
-  const transformedMoments = moments.map(transformMoment);
-  const filteredMoments = transformedMoments.filter(moment => {
+  // Filter and sort moments (they're already transformed in loadMoments)
+  console.log('Moments in state for filtering:', moments);
+  const filteredMoments = moments.filter(moment => {
     const matchesSearch = searchQuery === '' || 
       moment.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       moment.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -135,6 +239,8 @@ export function MomentsScreen() {
     
     return matchesSearch && matchesCategory && matchesStatus;
   }).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  
+  console.log('Filtered moments for rendering:', filteredMoments);
   
   const handleLikeMoment = async (momentId: string) => {
     try {
@@ -236,11 +342,19 @@ export function MomentsScreen() {
         setEditingMoment(null);
       } else {
         // Create new moment
-        await createMoment({
+        if (!terriiProfile?.id || !terriiProfile?.careHomeID) {
+          throw new Error('User profile not found. Please ensure you are logged in properly.');
+        }
+        
+        const momentToCreate = {
           ...momentData,
-          createdByID: terriiProfile?.id,
-          careHomeID: terriiProfile?.careHomeID
-        });
+          createdByID: terriiProfile.id,
+          careHomeID: terriiProfile.careHomeID
+        };
+        
+        console.log('Creating moment with data:', momentToCreate);
+        const createdMoment = await createMoment(momentToCreate);
+        console.log('Created moment response:', createdMoment);
         toast.success('Moment created successfully');
       }
       
@@ -248,7 +362,7 @@ export function MomentsScreen() {
       await loadMoments();
     } catch (error) {
       console.error('Error creating/updating moment:', error);
-      toast.error('Failed to save moment');
+      toast.error(error instanceof Error ? error.message : 'Failed to save moment');
       throw error; // Re-throw to handle in dialog
     }
   };
@@ -260,9 +374,9 @@ export function MomentsScreen() {
   
   // Calculate summary statistics
   const totalMoments = moments.length;
-  const publishedMoments = transformedMoments.filter(m => m.status === 'published').length;
-  const pendingMoments = transformedMoments.filter(m => m.status === 'pending_approval').length;
-  const sharedMoments = transformedMoments.filter(m => m.isSharedWithFamily).length;
+  const publishedMoments = moments.filter((m: Moment) => m.status === 'published').length;
+  const pendingMoments = moments.filter((m: Moment) => m.status === 'pending_approval').length;
+  const sharedMoments = moments.filter((m: Moment) => m.isSharedWithFamily).length;
 
   if (loading) {
     return (
@@ -460,19 +574,22 @@ export function MomentsScreen() {
               </div>
             ) : (
               <div className="flex flex-col gap-6 w-full max-w-3xl mx-auto">
-                {filteredMoments.map(moment => (
-                  <MomentCard
-                    key={moment.id}
-                    moment={moment}
-                    onLike={handleLikeMoment}
-                    onComment={handleCommentMoment}
-                    onShare={handleShareMoment}
-                    onEdit={handleEditMoment}
-                    onDelete={handleDeleteMoment}
-                    onApprove={handleApproveMoment}
-                    onViewDetail={handleCommentMoment}
-                  />
-                ))}
+                {filteredMoments.map(moment => {
+                  console.log('Rendering MomentCard with data:', moment);
+                  return (
+                    <MomentCard
+                      key={moment.id}
+                      moment={moment}
+                      onLike={handleLikeMoment}
+                      onComment={handleCommentMoment}
+                      onShare={handleShareMoment}
+                      onEdit={handleEditMoment}
+                      onDelete={handleDeleteMoment}
+                      onApprove={handleApproveMoment}
+                      onViewDetail={handleCommentMoment}
+                    />
+                  );
+                })}
               </div>
             )}
           </TabsContent>
@@ -500,7 +617,7 @@ export function MomentsScreen() {
           </DialogHeader>
           
           <div className="space-y-4 py-4 max-h-[50vh] overflow-y-auto">
-            {showComments && transformedMoments.find(m => m.id === showComments)?.comments.map((comment: any, index: number) => (
+            {showComments && moments.find((m: Moment) => m.id === showComments)?.comments.map((comment: any, index: number) => (
               <div key={index} className="bg-gray-50 p-3 rounded-lg">
                 <p className="text-sm">{comment}</p>
               </div>

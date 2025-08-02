@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/Select';
 import { Switch } from '../components/ui/Switch';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/Avatar';
+import { S3Image } from '../components/ui/S3Image';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/Dialog';
 import { User, Bell, Shield, HelpCircle, LogOut, Camera, Save, Trash2, Play, Building2, Settings2, Home } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -13,6 +14,7 @@ import { getCareHome, updateCareHome, updateTerriiUserProfile } from '../lib/ter
 import { toast } from 'sonner';
 import { Auth } from '../lib/amplify';
 import { updateUserAttributes } from 'aws-amplify/auth';
+import { uploadImageToS3 } from '../lib/imageUpload';
 
 export function SettingsScreen() {
   const { terriiProfile, user, logout, updateTerriiProfile, isSuperAdmin } = useAuth();
@@ -86,14 +88,19 @@ export function SettingsScreen() {
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfilePicture(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    try {      
+      // Upload to S3 and get the key
+      const s3Key = await uploadImageToS3(file, 'terrii-profiles');
+      if (s3Key) {
+        setProfilePicture(s3Key);
+      }
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      toast.error('Failed to upload profile picture');
     }
   };
 
@@ -102,15 +109,11 @@ export function SettingsScreen() {
     
     setLoading(true);
     try {
-      // Update Cognito user attributes if they've changed
+      // Update Cognito user attributes if they've changed (only name - email is not editable)
       const attributesToUpdate: any = {};
       
       if (userAttributes.name !== (user?.attributes?.name || '')) {
         attributesToUpdate.name = userAttributes.name;
-      }
-      
-      if (userAttributes.email !== (user?.attributes?.email || '')) {
-        attributesToUpdate.email = userAttributes.email;
       }
       
       // Update Cognito user attributes if there are changes
@@ -215,7 +218,7 @@ export function SettingsScreen() {
               <div className="relative">
                 <Avatar className="w-20 h-20">
                   {profilePicture ? (
-                    <AvatarImage src={profilePicture} alt="Profile" />
+                    <S3Image s3Key={profilePicture} alt="Profile" className="w-20 h-20 object-cover rounded-full" />
                   ) : (
                     <AvatarFallback className="bg-terrii-green text-terrii-text-primary text-xl">
                       {getInitials(getUserDisplayName())}
@@ -260,11 +263,11 @@ export function SettingsScreen() {
                   id="email"
                   type="email"
                   value={userAttributes.email}
-                  onChange={(e) => setUserAttributes(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Enter your email address"
+                  disabled
+                  className="bg-gray-50 text-gray-600"
                 />
                 <p className="text-xs text-terrii-text-secondary">
-                  Changes to email may require verification
+                  Email cannot be changed for security reasons
                 </p>
               </div>
               

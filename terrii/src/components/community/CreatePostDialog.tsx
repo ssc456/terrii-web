@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Image, Paperclip, Tag } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/Dialog';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Textarea } from '../ui/Textarea';
@@ -14,8 +14,6 @@ import {
   SelectValue 
 } from '../ui/Select';
 import { useAuth } from '../../contexts/AuthContext';
-import { terriiApi } from '../../lib/terriiApi';
-import { Storage } from 'aws-amplify';
 import type { CommunityCategory } from '../../mock/community';
 
 interface CreatePostDialogProps {
@@ -124,6 +122,12 @@ export function CreatePostDialog({
       <DialogContent className="sm:max-w-[800px] w-full">
         <DialogHeader>
           <DialogTitle>Create {isStaff ? 'Notice' : 'Post'}</DialogTitle>
+          <DialogDescription>
+            {isStaff 
+              ? 'Share important information and notices with families and residents.' 
+              : 'Share updates, photos, and moments with your community.'
+            }
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit}>

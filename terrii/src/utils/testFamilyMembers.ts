@@ -51,7 +51,7 @@ export const debugFamilyMemberWorkflow = async () => {
     console.log('\n� Step 2: Checking initial family members...');
     const initialFamilyMembers = await getResidentFamilyMembers(testResident.id);
     console.log(`✅ Found ${initialFamilyMembers.length} family members initially`);
-    initialFamilyMembers.forEach((member, index) => {
+    initialFamilyMembers.forEach((member: any, index: number) => {
       console.log(`  ${index + 1}. ${member.name} (${member.relationship}) - ${member.phone}`);
     });
     
@@ -71,7 +71,7 @@ export const debugFamilyMemberWorkflow = async () => {
     console.log('\n📋 Step 4: Verifying with direct family member query...');
     const afterDirectQuery = await getResidentFamilyMembers(testResident.id);
     console.log(`✅ Now found ${afterDirectQuery.length} family members`);
-    afterDirectQuery.forEach((member, index) => {
+    afterDirectQuery.forEach((member: any, index: number) => {
       console.log(`  ${index + 1}. ${member.name} (${member.relationship}) - ${member.phone}`);
     });
     
@@ -80,7 +80,7 @@ export const debugFamilyMemberWorkflow = async () => {
     const fullResidentData = await getResidentWithFullData(testResident.id);
     console.log(`✅ Full data shows ${fullResidentData.familyMembers?.length || 0} family members`);
     if (fullResidentData.familyMembers) {
-      fullResidentData.familyMembers.forEach((member, index) => {
+      fullResidentData.familyMembers.forEach((member: any, index: number) => {
         console.log(`  ${index + 1}. ${member.name} (${member.relationship}) - ${member.phone}`);
       });
     }
@@ -197,27 +197,6 @@ console.log('🧪 Family member debug tools loaded!');
 console.log('Available functions:');
 console.log('- debugFamilyMemberWorkflow()');
 console.log('- testResidentCreationWithFamily()');
-    
-    // Compare results
-    console.log('🔍 Comparison:');
-    console.log('- Direct query returned:', familyMembers?.length || 0, 'family members');
-    console.log('- Full data query returned:', residentWithData.familyMembers?.length || 0, 'family members');
-    
-    return {
-      success: true,
-      directQuery: familyMembers,
-      fullDataQuery: residentWithData.familyMembers,
-      newMember: newFamilyMember
-    };
-    
-  } catch (error) {
-    console.error('❌ Error testing family member functionality:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
-  }
-};
 
 export const testWithRealResident = async () => {
   console.log('🧪 Testing with first available resident...');

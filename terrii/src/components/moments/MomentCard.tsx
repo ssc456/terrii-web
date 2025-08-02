@@ -108,8 +108,8 @@ export function MomentCard({
             <div className="flex items-center">
               <div className="w-11 h-11 rounded-full bg-terrii-blue/10 flex items-center justify-center overflow-hidden border-2 border-white">
                 {moment.author.photo ? (
-                  <img 
-                    src={moment.author.photo} 
+                  <S3Image 
+                    s3Key={moment.author.photo} 
                     alt={moment.author.name} 
                     className="w-full h-full object-cover"
                   />
@@ -134,8 +134,8 @@ export function MomentCard({
             <div className="flex items-center bg-terrii-blue/5 p-2 rounded-lg">
               <div className="w-9 h-9 rounded-full bg-terrii-blue/10 flex items-center justify-center overflow-hidden">
                 {moment.resident.photo ? (
-                  <img 
-                    src={moment.resident.photo} 
+                  <S3Image 
+                    s3Key={moment.resident.photo} 
                     alt={moment.resident.name} 
                     className="w-full h-full object-cover"
                   />

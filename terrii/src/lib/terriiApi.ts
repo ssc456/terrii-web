@@ -347,6 +347,25 @@ export const listAllUsers = async () => {
  * Get users without TERRii profiles (unlinked users)
  * @returns A list of users without TERRii profiles
  */
+/**
+ * Get a user by ID
+ * @param userId The user ID
+ * @returns The user data
+ */
+export const getUserById = async (userId: string) => {
+  try {
+    const response = await client.graphql({
+      query: queries.getUser,
+      variables: { id: userId }
+    });
+
+    return response.data.getUser;
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    throw error;
+  }
+};
+
 export const getUsersWithoutTERRiiProfile = async () => {
   try {
     // Get all users
@@ -1603,6 +1622,10 @@ export const createMoment = async (data: any) => {
     return response.data.createTerriiMoment;
   } catch (error) {
     console.error('Error creating moment:', error);
+    console.error('Moment data being sent:', JSON.stringify(data, null, 2));
+    if (error && typeof error === 'object' && 'errors' in error) {
+      console.error('GraphQL errors:', (error as any).errors);
+    }
     throw error;
   }
 };

@@ -73,17 +73,9 @@ export function CreateMomentDialog({
       const momentData = {
         content: `${emoji ? emoji + ' ' : ''}${momentTitle}\n\n${momentContent}`,
         residentID: selectedResident,
-        media: mediaKeys.length > 0 ? mediaKeys : null,
-        tags: momentTags.length > 0 ? momentTags : null,
         isPrivate: !shareWithFamily,
-        // Additional metadata can be stored in content or separate fields
-        metadata: {
-          title: momentTitle,
-          emoji: emoji,
-          description: momentContent,
-          category: momentCategory,
-          requiresApproval: requiresApproval
-        }
+        ...(mediaKeys.length > 0 && { media: mediaKeys }),
+        ...(momentTags.length > 0 && { tags: momentTags })
       };
 
       await onCreateMoment(momentData);

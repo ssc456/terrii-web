@@ -10,6 +10,7 @@ import {
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
+import { S3Image } from '../components/ui/S3Image';
 import { BottomNav } from '../components/layout/BottomNav';
 import { MessageBubble } from '../components/messages/MessageBubble';
 import { NewConversationDialog } from '../components/messages/NewConversationDialog';
@@ -337,8 +338,8 @@ export function MessagesScreen() {
             
             <div className="w-10 h-10 rounded-full bg-terrii-green flex items-center justify-center text-terrii-text-primary overflow-hidden">
               {currentThread.resident.photo ? (
-                <img 
-                  src={currentThread.resident.photo} 
+                <S3Image 
+                  s3Key={currentThread.resident.photo} 
                   alt={currentThread.resident.name} 
                   className="w-full h-full object-cover"
                 />
@@ -507,8 +508,8 @@ export function MessagesScreen() {
                 <div className="relative">
                   <div className="w-12 h-12 rounded-full bg-terrii-green flex items-center justify-center text-terrii-text-primary overflow-hidden">
                     {thread.resident.photo ? (
-                      <img 
-                        src={thread.resident.photo} 
+                      <S3Image 
+                        s3Key={thread.resident.photo} 
                         alt={thread.resident.name} 
                         className="w-full h-full object-cover"
                       />
