@@ -6,7 +6,14 @@
 
 /* eslint-disable */
 import * as React from "react";
-import { Button, Flex, Grid, TextField } from "@aws-amplify/ui-react";
+import {
+  Button,
+  Flex,
+  Grid,
+  SelectField,
+  SwitchField,
+  TextField,
+} from "@aws-amplify/ui-react";
 import { fetchByPath, getOverrideProps, validateField } from "./utils";
 import { generateClient } from "aws-amplify/api";
 import { createTerriiCareHome } from "../graphql/mutations";
@@ -30,6 +37,11 @@ export default function TerriiCareHomeCreateForm(props) {
     phoneNumber: "",
     email: "",
     website: "",
+    communityMode: "",
+    allowFamilyPosts: false,
+    requireFamilyPostApproval: false,
+    allowPostReactions: false,
+    allowPostComments: false,
     createdAt: "",
     updatedAt: "",
   };
@@ -42,6 +54,20 @@ export default function TerriiCareHomeCreateForm(props) {
   );
   const [email, setEmail] = React.useState(initialValues.email);
   const [website, setWebsite] = React.useState(initialValues.website);
+  const [communityMode, setCommunityMode] = React.useState(
+    initialValues.communityMode
+  );
+  const [allowFamilyPosts, setAllowFamilyPosts] = React.useState(
+    initialValues.allowFamilyPosts
+  );
+  const [requireFamilyPostApproval, setRequireFamilyPostApproval] =
+    React.useState(initialValues.requireFamilyPostApproval);
+  const [allowPostReactions, setAllowPostReactions] = React.useState(
+    initialValues.allowPostReactions
+  );
+  const [allowPostComments, setAllowPostComments] = React.useState(
+    initialValues.allowPostComments
+  );
   const [createdAt, setCreatedAt] = React.useState(initialValues.createdAt);
   const [updatedAt, setUpdatedAt] = React.useState(initialValues.updatedAt);
   const [errors, setErrors] = React.useState({});
@@ -53,6 +79,11 @@ export default function TerriiCareHomeCreateForm(props) {
     setPhoneNumber(initialValues.phoneNumber);
     setEmail(initialValues.email);
     setWebsite(initialValues.website);
+    setCommunityMode(initialValues.communityMode);
+    setAllowFamilyPosts(initialValues.allowFamilyPosts);
+    setRequireFamilyPostApproval(initialValues.requireFamilyPostApproval);
+    setAllowPostReactions(initialValues.allowPostReactions);
+    setAllowPostComments(initialValues.allowPostComments);
     setCreatedAt(initialValues.createdAt);
     setUpdatedAt(initialValues.updatedAt);
     setErrors({});
@@ -65,6 +96,11 @@ export default function TerriiCareHomeCreateForm(props) {
     phoneNumber: [],
     email: [],
     website: [],
+    communityMode: [],
+    allowFamilyPosts: [],
+    requireFamilyPostApproval: [],
+    allowPostReactions: [],
+    allowPostComments: [],
     createdAt: [],
     updatedAt: [],
   };
@@ -118,6 +154,11 @@ export default function TerriiCareHomeCreateForm(props) {
           phoneNumber,
           email,
           website,
+          communityMode,
+          allowFamilyPosts,
+          requireFamilyPostApproval,
+          allowPostReactions,
+          allowPostComments,
           createdAt,
           updatedAt,
         };
@@ -189,6 +230,11 @@ export default function TerriiCareHomeCreateForm(props) {
               phoneNumber,
               email,
               website,
+              communityMode,
+              allowFamilyPosts,
+              requireFamilyPostApproval,
+              allowPostReactions,
+              allowPostComments,
               createdAt,
               updatedAt,
             };
@@ -221,6 +267,11 @@ export default function TerriiCareHomeCreateForm(props) {
               phoneNumber,
               email,
               website,
+              communityMode,
+              allowFamilyPosts,
+              requireFamilyPostApproval,
+              allowPostReactions,
+              allowPostComments,
               createdAt,
               updatedAt,
             };
@@ -253,6 +304,11 @@ export default function TerriiCareHomeCreateForm(props) {
               phoneNumber,
               email,
               website,
+              communityMode,
+              allowFamilyPosts,
+              requireFamilyPostApproval,
+              allowPostReactions,
+              allowPostComments,
               createdAt,
               updatedAt,
             };
@@ -285,6 +341,11 @@ export default function TerriiCareHomeCreateForm(props) {
               phoneNumber,
               email,
               website,
+              communityMode,
+              allowFamilyPosts,
+              requireFamilyPostApproval,
+              allowPostReactions,
+              allowPostComments,
               createdAt,
               updatedAt,
             };
@@ -317,6 +378,11 @@ export default function TerriiCareHomeCreateForm(props) {
               phoneNumber: value,
               email,
               website,
+              communityMode,
+              allowFamilyPosts,
+              requireFamilyPostApproval,
+              allowPostReactions,
+              allowPostComments,
               createdAt,
               updatedAt,
             };
@@ -349,6 +415,11 @@ export default function TerriiCareHomeCreateForm(props) {
               phoneNumber,
               email: value,
               website,
+              communityMode,
+              allowFamilyPosts,
+              requireFamilyPostApproval,
+              allowPostReactions,
+              allowPostComments,
               createdAt,
               updatedAt,
             };
@@ -381,6 +452,11 @@ export default function TerriiCareHomeCreateForm(props) {
               phoneNumber,
               email,
               website: value,
+              communityMode,
+              allowFamilyPosts,
+              requireFamilyPostApproval,
+              allowPostReactions,
+              allowPostComments,
               createdAt,
               updatedAt,
             };
@@ -397,6 +473,211 @@ export default function TerriiCareHomeCreateForm(props) {
         hasError={errors.website?.hasError}
         {...getOverrideProps(overrides, "website")}
       ></TextField>
+      <SelectField
+        label="Community mode"
+        placeholder="Please select an option"
+        isDisabled={false}
+        value={communityMode}
+        onChange={(e) => {
+          let { value } = e.target;
+          if (onChange) {
+            const modelFields = {
+              name,
+              address,
+              city,
+              postCode,
+              phoneNumber,
+              email,
+              website,
+              communityMode: value,
+              allowFamilyPosts,
+              requireFamilyPostApproval,
+              allowPostReactions,
+              allowPostComments,
+              createdAt,
+              updatedAt,
+            };
+            const result = onChange(modelFields);
+            value = result?.communityMode ?? value;
+          }
+          if (errors.communityMode?.hasError) {
+            runValidationTasks("communityMode", value);
+          }
+          setCommunityMode(value);
+        }}
+        onBlur={() => runValidationTasks("communityMode", communityMode)}
+        errorMessage={errors.communityMode?.errorMessage}
+        hasError={errors.communityMode?.hasError}
+        {...getOverrideProps(overrides, "communityMode")}
+      >
+        <option
+          children="Notice board"
+          value="NOTICE_BOARD"
+          {...getOverrideProps(overrides, "communityModeoption0")}
+        ></option>
+        <option
+          children="Two way"
+          value="TWO_WAY"
+          {...getOverrideProps(overrides, "communityModeoption1")}
+        ></option>
+      </SelectField>
+      <SwitchField
+        label="Allow family posts"
+        defaultChecked={false}
+        isDisabled={false}
+        isChecked={allowFamilyPosts}
+        onChange={(e) => {
+          let value = e.target.checked;
+          if (onChange) {
+            const modelFields = {
+              name,
+              address,
+              city,
+              postCode,
+              phoneNumber,
+              email,
+              website,
+              communityMode,
+              allowFamilyPosts: value,
+              requireFamilyPostApproval,
+              allowPostReactions,
+              allowPostComments,
+              createdAt,
+              updatedAt,
+            };
+            const result = onChange(modelFields);
+            value = result?.allowFamilyPosts ?? value;
+          }
+          if (errors.allowFamilyPosts?.hasError) {
+            runValidationTasks("allowFamilyPosts", value);
+          }
+          setAllowFamilyPosts(value);
+        }}
+        onBlur={() => runValidationTasks("allowFamilyPosts", allowFamilyPosts)}
+        errorMessage={errors.allowFamilyPosts?.errorMessage}
+        hasError={errors.allowFamilyPosts?.hasError}
+        {...getOverrideProps(overrides, "allowFamilyPosts")}
+      ></SwitchField>
+      <SwitchField
+        label="Require family post approval"
+        defaultChecked={false}
+        isDisabled={false}
+        isChecked={requireFamilyPostApproval}
+        onChange={(e) => {
+          let value = e.target.checked;
+          if (onChange) {
+            const modelFields = {
+              name,
+              address,
+              city,
+              postCode,
+              phoneNumber,
+              email,
+              website,
+              communityMode,
+              allowFamilyPosts,
+              requireFamilyPostApproval: value,
+              allowPostReactions,
+              allowPostComments,
+              createdAt,
+              updatedAt,
+            };
+            const result = onChange(modelFields);
+            value = result?.requireFamilyPostApproval ?? value;
+          }
+          if (errors.requireFamilyPostApproval?.hasError) {
+            runValidationTasks("requireFamilyPostApproval", value);
+          }
+          setRequireFamilyPostApproval(value);
+        }}
+        onBlur={() =>
+          runValidationTasks(
+            "requireFamilyPostApproval",
+            requireFamilyPostApproval
+          )
+        }
+        errorMessage={errors.requireFamilyPostApproval?.errorMessage}
+        hasError={errors.requireFamilyPostApproval?.hasError}
+        {...getOverrideProps(overrides, "requireFamilyPostApproval")}
+      ></SwitchField>
+      <SwitchField
+        label="Allow post reactions"
+        defaultChecked={false}
+        isDisabled={false}
+        isChecked={allowPostReactions}
+        onChange={(e) => {
+          let value = e.target.checked;
+          if (onChange) {
+            const modelFields = {
+              name,
+              address,
+              city,
+              postCode,
+              phoneNumber,
+              email,
+              website,
+              communityMode,
+              allowFamilyPosts,
+              requireFamilyPostApproval,
+              allowPostReactions: value,
+              allowPostComments,
+              createdAt,
+              updatedAt,
+            };
+            const result = onChange(modelFields);
+            value = result?.allowPostReactions ?? value;
+          }
+          if (errors.allowPostReactions?.hasError) {
+            runValidationTasks("allowPostReactions", value);
+          }
+          setAllowPostReactions(value);
+        }}
+        onBlur={() =>
+          runValidationTasks("allowPostReactions", allowPostReactions)
+        }
+        errorMessage={errors.allowPostReactions?.errorMessage}
+        hasError={errors.allowPostReactions?.hasError}
+        {...getOverrideProps(overrides, "allowPostReactions")}
+      ></SwitchField>
+      <SwitchField
+        label="Allow post comments"
+        defaultChecked={false}
+        isDisabled={false}
+        isChecked={allowPostComments}
+        onChange={(e) => {
+          let value = e.target.checked;
+          if (onChange) {
+            const modelFields = {
+              name,
+              address,
+              city,
+              postCode,
+              phoneNumber,
+              email,
+              website,
+              communityMode,
+              allowFamilyPosts,
+              requireFamilyPostApproval,
+              allowPostReactions,
+              allowPostComments: value,
+              createdAt,
+              updatedAt,
+            };
+            const result = onChange(modelFields);
+            value = result?.allowPostComments ?? value;
+          }
+          if (errors.allowPostComments?.hasError) {
+            runValidationTasks("allowPostComments", value);
+          }
+          setAllowPostComments(value);
+        }}
+        onBlur={() =>
+          runValidationTasks("allowPostComments", allowPostComments)
+        }
+        errorMessage={errors.allowPostComments?.errorMessage}
+        hasError={errors.allowPostComments?.hasError}
+        {...getOverrideProps(overrides, "allowPostComments")}
+      ></SwitchField>
       <TextField
         label="Created at"
         isRequired={false}
@@ -415,6 +696,11 @@ export default function TerriiCareHomeCreateForm(props) {
               phoneNumber,
               email,
               website,
+              communityMode,
+              allowFamilyPosts,
+              requireFamilyPostApproval,
+              allowPostReactions,
+              allowPostComments,
               createdAt: value,
               updatedAt,
             };
@@ -449,6 +735,11 @@ export default function TerriiCareHomeCreateForm(props) {
               phoneNumber,
               email,
               website,
+              communityMode,
+              allowFamilyPosts,
+              requireFamilyPostApproval,
+              allowPostReactions,
+              allowPostComments,
               createdAt,
               updatedAt: value,
             };

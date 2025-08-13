@@ -12,9 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs'
 import { MomentCard } from '../components/moments/MomentCard';
 import type { Moment } from '../components/moments/MomentCard';
 import { CreateMomentDialog } from '../components/moments/CreateMomentDialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/Dialog';
-import { Textarea } from '../components/ui/Textarea';
-import { useAuth } from '../contexts/AuthContext';
 import { 
   listMoments, 
   createMoment, 
@@ -23,9 +20,11 @@ import {
   toggleMomentLike,
   addMomentComment,
   updateMomentPrivacy,
-  getUserById
+  getUserById,
+  listMomentComments
 } from '../lib/terriiApi';
 import { listResidents } from '../lib/terriiApi';
+import { useAuth } from '../contexts/AuthContext';
 
 export function MomentsScreen() {
   const { terriiProfile, user } = useAuth();
@@ -38,8 +37,6 @@ export function MomentsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [showComments, setShowComments] = useState<string | null>(null);
-  const [newComment, setNewComment] = useState('');
 
   const categories = [
     { value: 'all', label: 'All Categories' },
@@ -58,50 +55,29 @@ export function MomentsScreen() {
 
   const loadMoments = async () => {
     if (!terriiProfile?.careHomeID) return;
-    
     try {
       setLoading(true);
-      console.log('Loading moments for care home:', terriiProfile.careHomeID);
       const momentsData = await listMoments(terriiProfile.careHomeID);
-      console.log('Raw moments data from API:', momentsData);
-      
-      // Get unique user IDs from moments to fetch user names
       const userIds = [...new Set(momentsData?.map(moment => moment.createdBy?.userID).filter(Boolean))];
-      console.log('User IDs to fetch names for:', userIds);
-      
-      // Fetch user data for staff member names
-      const userDataPromises = userIds.map(async (userId) => {
+      const userResults = await Promise.all(userIds.map(async (userId) => {
         if (!userId) return { userId: '', userData: null };
-        
-        try {
-          const userData = await getUserById(userId);
-          return { userId, userData };
-        } catch (error) {
-          console.error(`Error fetching user ${userId}:`, error);
-          return { userId, userData: null };
-        }
-      });
+        try { return { userId, userData: await getUserById(userId) }; } catch { return { userId, userData: null }; }
+      }));
+      const userMap = new Map(); userResults.forEach(({ userId, userData }) => { if (userData) userMap.set(userId, userData); });
+      let transformed = momentsData?.map(moment => transformMoment(moment, userMap)) || [];
       
-      const userResults = await Promise.all(userDataPromises);
-      const userMap = new Map();
-      userResults.forEach(({ userId, userData }) => {
-        if (userData) {
-          userMap.set(userId, userData);
-        }
-      });
+      // Preload comments (simple approach; optimize later if needed)
+      const commentsArrays = await Promise.all(transformed.map(m => listMomentComments(m.id)));
+      transformed = transformed.map((m, idx) => ({
+        ...m,
+        comments: commentsArrays[idx].map((c: any) => ({ id: c.id, content: c.content, createdAt: c.createdAt, createdByID: c.createdByID }))
+      }));
       
-      console.log('User data map:', userMap);
-      
-      // Transform moments with user data
-      const transformedMoments = momentsData?.map(moment => transformMoment(moment, userMap)) || [];
-      console.log('Final transformed moments for state:', transformedMoments);
-      setMoments(transformedMoments);
+      setMoments(transformed);
     } catch (error) {
       console.error('Error loading moments:', error);
       toast.error('Failed to load moments');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const loadResidents = async () => {
@@ -261,32 +237,6 @@ export function MomentsScreen() {
     }
   };
   
-  const handleCommentMoment = (momentId: string) => {
-    setShowComments(momentId);
-  };
-  
-  const handleAddComment = async () => {
-    if (!newComment.trim() || !showComments) return;
-    
-    try {
-      await addMomentComment({
-        content: newComment,
-        momentID: showComments,
-        createdByID: terriiProfile?.id
-      });
-      
-      toast.success('Comment added');
-      setNewComment('');
-      setShowComments(null);
-      
-      // Refresh moments to show new comment
-      await loadMoments();
-    } catch (error) {
-      console.error('Error adding comment:', error);
-      toast.error('Failed to add comment');
-    }
-  };
-  
   const handleShareMoment = async (momentId: string) => {
     try {
       // Toggle privacy status to share with family
@@ -364,6 +314,19 @@ export function MomentsScreen() {
       console.error('Error creating/updating moment:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to save moment');
       throw error; // Re-throw to handle in dialog
+    }
+  };
+
+  const handleAddComment = async (momentId: string, content: string) => {
+    if (!content.trim()) return;
+    const optimistic = { id: 'temp-' + Date.now(), content: content.trim(), createdAt: new Date().toISOString(), createdByID: terriiProfile?.id };
+    setMoments(prev => prev.map(m => m.id === momentId ? { ...m, comments: [...m.comments, optimistic] } : m));
+    try {
+      const created = await addMomentComment({ content: optimistic.content, momentID: momentId, createdByID: terriiProfile?.id });
+      setMoments(prev => prev.map(m => m.id === momentId ? { ...m, comments: m.comments.map((c: any) => c.id === optimistic.id ? created : c) } : m));
+    } catch (error) {
+      setMoments(prev => prev.map(m => m.id === momentId ? { ...m, comments: m.comments.filter((c: any) => c.id !== optimistic.id) } : m));
+      toast.error('Failed to add comment');
     }
   };
 
@@ -581,12 +544,12 @@ export function MomentsScreen() {
                       key={moment.id}
                       moment={moment}
                       onLike={handleLikeMoment}
-                      onComment={handleCommentMoment}
                       onShare={handleShareMoment}
                       onEdit={handleEditMoment}
                       onDelete={handleDeleteMoment}
                       onApprove={handleApproveMoment}
-                      onViewDetail={handleCommentMoment}
+                      onViewDetail={() => {}}
+                      onAddComment={handleAddComment}
                     />
                   );
                 })}
@@ -608,37 +571,6 @@ export function MomentsScreen() {
         residents={residents.map(r => ({ id: r.id, name: r.name }))}
         categories={categories.filter(c => c.value !== 'all')}
       />
-      
-      {/* Comments Dialog */}
-      <Dialog open={!!showComments} onOpenChange={() => setShowComments(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Comments</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4 max-h-[50vh] overflow-y-auto">
-            {showComments && moments.find((m: Moment) => m.id === showComments)?.comments.map((comment: any, index: number) => (
-              <div key={index} className="bg-gray-50 p-3 rounded-lg">
-                <p className="text-sm">{comment}</p>
-              </div>
-            ))}
-            
-            {showComments && moments.find(m => m.id === showComments)?.comments.length === 0 && (
-              <p className="text-center text-terrii-text-light py-6">No comments yet</p>
-            )}
-          </div>
-          
-          <div className="flex space-x-2">
-            <Textarea
-              value={newComment}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewComment(e.target.value)}
-              placeholder="Add a comment..."
-              className="flex-grow"
-            />
-            <Button onClick={handleAddComment}>Post</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

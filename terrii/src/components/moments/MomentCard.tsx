@@ -48,6 +48,7 @@ interface MomentCardProps {
   onApprove?: (momentId: string) => void;
   onViewDetail?: (momentId: string) => void;
   viewMode?: 'compact' | 'full';
+  onAddComment?: (momentId: string, content: string) => void;
 }
 
 export function MomentCard({ 
@@ -59,9 +60,13 @@ export function MomentCard({
   onDelete,
   onApprove,
   onViewDetail,
-  viewMode = 'full'
+  viewMode = 'full',
+  onAddComment
 }: MomentCardProps) {
   const [hovering, setHovering] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [draftComment, setDraftComment] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
   
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -70,6 +75,7 @@ export function MomentCard({
   
   const handleComment = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setExpanded(prev => !prev);
     onComment?.(moment.id);
   };
   
@@ -92,6 +98,27 @@ export function MomentCard({
     e.stopPropagation();
     onApprove?.(moment.id);
   };
+
+  const handleSubmitComment = async () => {
+    if (!draftComment.trim()) return;
+    if (!onAddComment) return;
+    try {
+      setSubmittingComment(true);
+      onAddComment(moment.id, draftComment.trim());
+      setDraftComment('');
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      handleSubmitComment();
+    }
+  };
+
+  const getInitials = (name: string) => name.split(' ').map(p=>p[0]).join('').toUpperCase();
 
   return (
     <div 
@@ -250,7 +277,7 @@ export function MomentCard({
         </div>
       </div>
       
-      {/* Card Footer */}
+      {/* Card Footer (reactions row) */}
       <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button 
@@ -287,6 +314,63 @@ export function MomentCard({
           </Button>
         </div>
       </div>
+      
+      {/* Unified Inline Comments Section styled like Community PostCard */}
+      {expanded && (
+        <div className="px-4 pb-4 border-t border-gray-100" onClick={(e)=>e.stopPropagation()}>
+          <h4 className="text-sm font-semibold text-terrii-text-secondary mt-4 mb-2">Comments ({moment.comments.length})</h4>
+          <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+            {moment.comments.length === 0 && (
+              <div className="text-xs text-terrii-text-light italic">No comments yet. Be the first to comment.</div>
+            )}
+            {moment.comments.map((c: any) => {
+              const authorName = c.author?.name || c.authorName || 'User';
+              const createdAt = c.createdAt || c.timestamp || c.created_at;
+              return (
+                <div key={c.id} className="flex items-start space-x-2">
+                  <div className="h-8 w-8 rounded-full bg-terrii-blue/10 flex items-center justify-center text-terrii-blue text-xs font-medium flex-shrink-0">
+                    {getInitials(authorName)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs text-terrii-text-light mb-0.5 flex items-center gap-2">
+                      <span className="font-medium text-terrii-text-primary">{authorName}</span>
+                      {createdAt && (
+                        <span>{formatDistanceToNow(new Date(createdAt), { addSuffix: true })}</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-terrii-text-primary whitespace-pre-wrap break-words">{c.content || c.text || ''}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {onAddComment && (
+            <div className="mt-3">
+              <textarea
+                value={draftComment}
+                onChange={(e)=>setDraftComment(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Write a comment... (Ctrl/Cmd+Enter to send)"
+                className="w-full text-sm rounded-md border border-terrii-border-light bg-white/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-terrii-blue/30 p-2 resize-y min-h-[60px]"
+              />
+              <div className="flex justify-end mt-2 gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={()=>{ setExpanded(false); }}
+                >Close</Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={!draftComment.trim() || submittingComment}
+                  onClick={handleSubmitComment}
+                >{submittingComment ? 'Posting...' : 'Post Comment'}</Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

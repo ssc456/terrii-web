@@ -8,7 +8,8 @@ import { S3Image } from '../components/ui/S3Image';
 import { ResidentDialog } from '../components/residents/ResidentDialog';
 import { QuickUpdateDialog } from '../components/residents/QuickUpdateDialog';
 import { BottomNav } from '../components/layout/BottomNav';
-import { getResidentWithFullData, addResidentActivityWithUpdate, deleteResidentFamilyMember } from '../lib/terriiApi';
+import { getResidentWithFullData, addResidentActivityWithUpdate, deleteResidentFamilyMember, generateFamilyInviteCode } from '../lib/terriiApi';
+import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import { 
   calculateResidentStatus
@@ -33,11 +34,14 @@ import {
 export function ResidentProfileScreen() {
   const { id: residentId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { terriiProfile } = useAuth();
   const [resident, setResident] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showQuickUpdate, setShowQuickUpdate] = useState(false);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   useEffect(() => {
     if (residentId) {
@@ -118,6 +122,30 @@ export function ResidentProfileScreen() {
     } catch (error) {
       console.error('Error deleting family member:', error);
       toast.error('Failed to delete family member');
+    }
+  };
+
+  const handleGenerateInviteCode = async (familyMember: any) => {
+    try {
+      // Get current user ID from auth context
+      if (!terriiProfile?.id) {
+        toast.error('User profile not found. Please reload the page.');
+        return;
+      }
+      
+      const result = await generateFamilyInviteCode(
+        familyMember.id,
+        terriiProfile.id
+      );
+      
+      if (result.success) {
+        setInviteCode(result.code);
+        setShowInviteModal(true);
+        toast.success(`Invite code generated for ${result.email}!`);
+      }
+    } catch (error: any) {
+      console.error('Error generating invite code:', error);
+      toast.error(error.message || 'Failed to generate invite code');
     }
   };
 
@@ -502,6 +530,16 @@ export function ResidentProfileScreen() {
                             >
                               <MessageSquare className="h-4 w-4" />
                             </Button>
+                            {!member.isRegistered && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleGenerateInviteCode(member)}
+                                className="text-terrii-green hover:text-terrii-green/80 hover:border-terrii-green"
+                              >
+                                📱 Invite
+                              </Button>
+                            )}
                             {member.id && (
                               <Button
                                 variant="outline"
@@ -596,6 +634,57 @@ export function ResidentProfileScreen() {
         residentName={resident?.name || ''}
         onSubmit={handleQuickUpdateSubmit}
       />
+
+      {/* Invite Code Modal */}
+      {showInviteModal && inviteCode && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Family Member Invite Code</h3>
+            
+            <div className="text-center mb-6">
+              <div className="text-3xl font-mono font-bold text-terrii-green mb-2">
+                {inviteCode}
+              </div>
+              <p className="text-sm text-gray-600">
+                Share this code with the family member to register
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded p-4 mb-4">
+              <h4 className="font-medium mb-2">Instructions:</h4>
+              <ol className="text-sm space-y-1 list-decimal list-inside">
+                <li>Family member downloads TERRii Family app</li>
+                <li>During registration, they enter this code AND their email address</li>
+                <li>Both code and email must match for security</li>
+                <li>Code expires in 7 days</li>
+                <li>Code can only be used once</li>
+              </ol>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(inviteCode);
+                  toast.success('Code copied to clipboard!');
+                }}
+                className="flex-1"
+              >
+                📋 Copy Code
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowInviteModal(false);
+                  setInviteCode(null);
+                }}
+                variant="outline"
+                className="flex-1"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

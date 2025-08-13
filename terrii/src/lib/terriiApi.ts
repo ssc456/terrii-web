@@ -1,7 +1,7 @@
 import { generateClient } from 'aws-amplify/api';
 import * as queries from '../graphql/queries';
 import * as mutations from '../graphql/mutations';
-import { ModelSortDirection } from '../API';
+import { ModelSortDirection, TerriiCommunityPostStatus } from '../API';
 
 // Initialize the API client
 const client = generateClient();
@@ -96,6 +96,33 @@ export const updateTerriiUserProfile = async (profileId: string, data: any) => {
   } catch (error) {
     console.error('Error updating TERRii user profile:', error);
     throw error;
+  }
+};
+
+// List all Terrii user profiles (superadmin)
+export const listAllTerriiUserProfiles = async () => {
+  try {
+    const resp: any = await client.graphql({
+      query: (queries as any).listTerriiUserProfiles
+    });
+    return resp.data?.listTerriiUserProfiles?.items || [];
+  } catch (e) {
+    console.error('Error listing TERRii user profiles', e);
+    return [];
+  }
+};
+
+// Delete a Terrii user profile (superadmin)
+export const deleteTerriiUserProfile = async (profileId: string) => {
+  try {
+    const resp: any = await client.graphql({
+      query: (mutations as any).deleteTerriiUserProfile,
+      variables: { input: { id: profileId } }
+    });
+    return resp.data?.deleteTerriiUserProfile;
+  } catch (e) {
+    console.error('Error deleting TERRii user profile', e);
+    throw e;
   }
 };
 
@@ -1740,33 +1767,6 @@ export const toggleMomentLike = async (momentId: string, action: 'like' | 'unlik
   }
 };
 
-/**
- * Add a comment to a moment
- * @param data The comment data
- * @returns The created comment
- */
-export const addMomentComment = async (data: any) => {
-  try {
-    const response = await client.graphql({
-      query: mutations.createTerriiMomentComment,
-      variables: {
-        input: data
-      }
-    });
-    
-    return response.data.createTerriiMomentComment;
-  } catch (error) {
-    console.error('Error adding moment comment:', error);
-    throw error;
-  }
-};
-
-/**
- * Update moment privacy status
- * @param momentId The moment ID
- * @param isPrivate Whether the moment should be private
- * @returns The updated moment
- */
 export const updateMomentPrivacy = async (momentId: string, isPrivate: boolean) => {
   try {
     const response = await client.graphql({
@@ -1838,6 +1838,50 @@ export const createCommunityPost = async (data: any) => {
   }
 };
 
+// Backward compatibility: like toggle for community posts (separate from heart count)
+export const togglePostLike = async (postId: string, action: 'like' | 'unlike') => {
+  try {
+    const getResp: any = await client.graphql({
+      query: (queries as any).getTerriiCommunityPost,
+      variables: { id: postId }
+    });
+    const post = getResp.data?.getTerriiCommunityPost;
+    if (!post) throw new Error('Post not found');
+    let likes = post.likes || 0;
+    if (action === 'like') likes += 1; else if (likes > 0) likes -= 1;
+    const updateResp: any = await client.graphql({
+      query: mutations.updateTerriiCommunityPost,
+      variables: { input: { id: postId, likes } }
+    });
+    return updateResp.data.updateTerriiCommunityPost;
+  } catch (e) {
+    console.error('Error toggling community post like', e);
+    throw e;
+  }
+};
+
+// Heart (like) toggle for community post (backward compatibility)
+export const toggleCommunityPostHeart = async (postId: string, action: 'heart' | 'unheart') => {
+  try {
+    const getResp: any = await client.graphql({
+      query: (queries as any).getTerriiCommunityPost,
+      variables: { id: postId }
+    });
+    const post = getResp.data?.getTerriiCommunityPost;
+    if (!post) throw new Error('Post not found');
+    let heartCount = post.heartCount || 0;
+    if (action === 'heart') heartCount += 1; else if (heartCount > 0) heartCount -= 1;
+    const updateResp: any = await client.graphql({
+      query: mutations.updateTerriiCommunityPost,
+      variables: { input: { id: postId, heartCount } }
+    });
+    return updateResp.data.updateTerriiCommunityPost;
+  } catch (e) {
+    console.error('Error toggling community post heart', e);
+    throw e;
+  }
+};
+
 /**
  * Add a comment to a community post
  * @param data The comment data
@@ -1845,124 +1889,509 @@ export const createCommunityPost = async (data: any) => {
  */
 export const addCommunityComment = async (data: any) => {
   try {
+    // Backward compatibility: allow (content, createdByID, postID) without threading fields
     const response = await client.graphql({
       query: mutations.createTerriiCommunityComment,
       variables: {
-        input: data
+        input: {
+          content: data.content,
+          createdByID: data.createdByID,
+          postID: data.postID || data.postID || data.postId, // tolerate different keys
+          parentCommentID: data.parentCommentID || null,
+          mentions: data.mentions || null
+        }
       }
     });
-    
-    return response.data.createTerriiCommunityComment;
+    return (response as any).data.createTerriiCommunityComment;
   } catch (error) {
     console.error('Error adding community comment:', error);
     throw error;
   }
 };
 
-/**
- * Like or unlike a community post
- * @param postId The post ID
- * @param userId The user ID
- * @param action 'like' or 'unlike'
- * @returns Success status
- */
-export const togglePostLike = async (postId: string, action: 'like' | 'unlike') => {
+// Threaded community comment helpers
+export const listCommunityComments = async (
+  postID: string,
+  parentCommentID?: string,
+  limit = 20,
+  nextToken?: string,
+  sortDirection: 'ASC' | 'DESC' = 'DESC' // newest first as requested
+) => {
   try {
-    // First get the current post
-    const getResponse = await client.graphql({
-      query: queries.getTerriiCommunityPost,
-      variables: { id: postId }
+    if (parentCommentID) {
+      const raw: any = await client.graphql({
+        query: (queries as any).communityCommentsByParent,
+        variables: { parentCommentID, sortDirection, limit, nextToken }
+      });
+      const data = (raw as any).data?.communityCommentsByParent || { items: [], nextToken: null };
+      return { items: data.items, nextToken: data.nextToken };
+    } else {
+      const raw: any = await client.graphql({
+        query: (queries as any).commentsByCommunityPost,
+        variables: { postID, sortDirection, limit, nextToken }
+      });
+      const data = (raw as any).data?.commentsByCommunityPost || { items: [], nextToken: null };
+      const items = (data.items || []).filter((c: any) => !c.parentCommentID);
+      return { items, nextToken: data.nextToken };
+    }
+  } catch (error) {
+    console.error('Error listing community comments:', error);
+    return { items: [], nextToken: null };
+  }
+};
+
+export const toggleCommunityCommentLike = async (commentID: string, action: 'like' | 'unlike') => {
+  try {
+    // Fetch existing comment to get likeCount
+    const existing = await client.graphql({
+      query: (queries as any).getTerriiCommunityComment,
+      variables: { id: commentID }
+    }) as any;
+    const comment = existing.data.getTerriiCommunityComment;
+    if (!comment) throw new Error('Comment not found');
+    let likeCount = comment.likeCount || 0;
+    if (action === 'like') likeCount += 1; else if (likeCount > 0) likeCount -= 1;
+    const response = await client.graphql({
+      query: mutations.updateTerriiCommunityComment,
+      variables: { input: { id: commentID, likeCount } }
     });
-    
-    const post = getResponse.data.getTerriiCommunityPost;
-    if (!post) {
-      throw new Error(`Post with ID ${postId} not found`);
-    }
-    
-    // Calculate new likes count
-    let newLikesCount = post.likes || 0;
-    if (action === 'like') {
-      newLikesCount += 1;
-    } else if (action === 'unlike' && newLikesCount > 0) {
-      newLikesCount -= 1;
-    }
-    
-    // Update the post with new likes count
-    const updateResponse = await client.graphql({
-      query: mutations.updateTerriiCommunityPost,
+    return (response as any).data.updateTerriiCommunityComment;
+  } catch (error) {
+    console.error('Error toggling community comment like:', error);
+    throw error;
+  }
+};
+
+export const editCommunityComment = async (commentID: string, content: string, mentions?: string[]) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.updateTerriiCommunityComment,
+      variables: { input: { id: commentID, content, editedAt: new Date().toISOString(), mentions } }
+    });
+    return (response as any).data.updateTerriiCommunityComment;
+  } catch (error) {
+    console.error('Error editing community comment:', error);
+    throw error;
+  }
+};
+
+export const softDeleteCommunityComment = async (commentID: string) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.updateTerriiCommunityComment,
+      variables: { input: { id: commentID, isDeleted: true, content: null } }
+    });
+    return (response as any).data.updateTerriiCommunityComment;
+  } catch (error) {
+    console.error('Error soft deleting community comment:', error);
+    throw error;
+  }
+};
+
+// Moment threaded comments
+export const addMomentComment = async (data: any) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.createTerriiMomentComment,
       variables: {
         input: {
-          id: postId,
-          likes: newLikesCount
+          content: data.content,
+          createdByID: data.createdByID,
+          momentID: data.momentID || data.momentId,
+          parentCommentID: data.parentCommentID || null,
+          mentions: data.mentions || null
         }
       }
     });
-    
-    return updateResponse.data.updateTerriiCommunityPost;
+    return (response as any).data.createTerriiMomentComment;
   } catch (error) {
-    console.error(`Error ${action === 'like' ? 'liking' : 'unliking'} post:`, error);
+    console.error('Error adding moment comment:', error);
     throw error;
   }
 };
 
-/**
- * Get a single community post by ID
- * @param postId The post ID
- * @returns The community post
- */
-export const getCommunityPost = async (postId: string) => {
+// Alias to ensure compatibility with existing imports / HMR edge cases
+export { addMomentComment as addMomentCommentCompat };
+
+export const listMomentThreadComments = async (
+  momentID: string,
+  parentCommentID?: string,
+  limit = 20,
+  nextToken?: string,
+  sortDirection: 'ASC' | 'DESC' = 'DESC'
+) => {
   try {
+    if (parentCommentID) {
+      const raw: any = await client.graphql({
+        query: (queries as any).momentCommentsByParent,
+        variables: { parentCommentID, sortDirection, limit, nextToken }
+      });
+      const data = (raw as any).data?.momentCommentsByParent || { items: [], nextToken: null };
+      return { items: data.items, nextToken: data.nextToken };
+    } else {
+      const raw: any = await client.graphql({
+        query: (queries as any).commentsByMoment,
+        variables: { momentID, sortDirection, limit, nextToken }
+      });
+      const data = (raw as any).data?.commentsByMoment || { items: [], nextToken: null };
+      const items = (data.items || []).filter((c: any) => !c.parentCommentID);
+      return { items, nextToken: data.nextToken };
+    }
+  } catch (error) {
+    console.error('Error listing moment comments:', error);
+    return { items: [], nextToken: null };
+  }
+};
+
+// Backward compatibility: original flat comments fetcher used in MomentsScreen
+export const listMomentComments = async (momentId: string) => {
+  try {
+    const { items } = await listMomentThreadComments(momentId, undefined, 100, undefined, 'ASC');
+    return items;
+  } catch (e) {
+    console.error('Error (compat) listMomentComments:', e);
+    return [];
+  }
+};
+
+export const toggleMomentCommentLike = async (commentID: string, action: 'like' | 'unlike') => {
+  try {
+    const existing = await client.graphql({
+      query: (queries as any).getTerriiMomentComment,
+      variables: { id: commentID }
+    }) as any;
+    const comment = existing.data.getTerriiMomentComment;
+    if (!comment) throw new Error('Comment not found');
+    let likeCount = comment.likeCount || 0;
+    if (action === 'like') likeCount += 1; else if (likeCount > 0) likeCount -= 1;
     const response = await client.graphql({
-      query: queries.getTerriiCommunityPost,
-      variables: { id: postId }
+      query: mutations.updateTerriiMomentComment,
+      variables: { input: { id: commentID, likeCount } }
     });
-    
-    return response.data.getTerriiCommunityPost;
+    return (response as any).data.updateTerriiMomentComment;
   } catch (error) {
-    console.error('Error getting community post:', error);
+    console.error('Error toggling moment comment like:', error);
     throw error;
   }
 };
 
-// =============================================================================
-// MESSAGING FUNCTIONS
-// =============================================================================
-
-/**
- * List message threads for a care home
- * @param careHomeId The ID of the care home
- * @returns A list of message threads
- */
-export const listMessageThreadsByCareHome = async (careHomeId: string) => {
+export const editMomentComment = async (commentID: string, content: string, mentions?: string[]) => {
   try {
     const response = await client.graphql({
-      query: queries.listTerriiMessageThreads,
-      variables: {
-        filter: {
-          residentID: { 
-            ne: null // Get all threads that have a resident
+      query: mutations.updateTerriiMomentComment,
+      variables: { input: { id: commentID, content, editedAt: new Date().toISOString(), mentions } }
+    });
+    return (response as any).data.updateTerriiMomentComment;
+  } catch (error) {
+    console.error('Error editing moment comment:', error);
+    throw error;
+  }
+};
+
+export const softDeleteMomentComment = async (commentID: string) => {
+  try {
+    const response = await client.graphql({
+      query: mutations.updateTerriiMomentComment,
+      variables: { input: { id: commentID, isDeleted: true, content: null } }
+    });
+    return (response as any).data.updateTerriiMomentComment;
+  } catch (error) {
+    console.error('Error soft deleting moment comment:', error);
+    throw error;
+  }
+};
+// ================================
+// INVITE CODE FUNCTIONS
+// ================================
+
+/**
+ * Generate a simple 8-digit invite code (XXXX-XXXX format)
+ */
+function generateInviteCode(): string {
+  const chars = '0123456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    if (i === 4) code += '-';
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+/**
+ * Generate invite code for family member
+ */
+export async function generateFamilyInviteCode(
+  familyMemberID: string,
+  createdByUserID: string
+): Promise<{ success: boolean; code: string; email: string }> {
+  try {
+    // Get family member details to ensure they have an email
+    const familyMemberResponse = await client.graphql({
+      query: `
+        query GetFamilyMember($id: ID!) {
+          getTerriiResidentFamily(id: $id) {
+            id
+            name
+            email
+            isRegistered
           }
         }
+      `,
+      variables: { id: familyMemberID }
+    }) as any;
+
+    const familyMember = familyMemberResponse.data?.getTerriiResidentFamily;
+    if (!familyMember) {
+      throw new Error('Family member not found');
+    }
+
+    if (!familyMember.email) {
+      throw new Error('Family member must have an email address to receive an invite');
+    }
+
+    if (familyMember.isRegistered) {
+      throw new Error('Family member is already registered');
+    }
+
+    // Check if family member already has an unused code
+    const existingResponse = await client.graphql({
+      query: `
+        query GetExistingCode($familyMemberID: ID!) {
+          listTerriiInviteCodes(filter: { 
+            familyMemberID: { eq: $familyMemberID }
+            isUsed: { eq: false }
+          }) {
+            items {
+              id
+              code
+              email
+              expiresAt
+            }
+          }
+        }
+      `,
+      variables: { familyMemberID }
+    }) as any;
+
+    const existingCodes = existingResponse.data?.listTerriiInviteCodes?.items || [];
+    
+    // Check if there's a valid existing code
+    const validCode = existingCodes.find((code: any) => 
+      new Date(code.expiresAt) > new Date()
+    );
+
+    if (validCode) {
+      return { 
+        success: true, 
+        code: validCode.code,
+        email: validCode.email
+      };
+    }
+
+    // Generate new code
+    let newCode: string;
+    let isUnique = false;
+    let attempts = 0;
+
+    do {
+      newCode = generateInviteCode();
+      attempts++;
+      
+      // Check if code already exists
+      const checkResponse = await client.graphql({
+        query: `
+          query CheckCodeExists($code: String!) {
+            listTerriiInviteCodes(filter: { code: { eq: $code } }) {
+              items {
+                id
+              }
+            }
+          }
+        `,
+        variables: { code: newCode }
+      }) as any;
+
+      isUnique = (checkResponse.data?.listTerriiInviteCodes?.items?.length || 0) === 0;
+    } while (!isUnique && attempts < 10);
+
+    if (!isUnique) {
+      throw new Error('Failed to generate unique invite code');
+    }
+
+    // Set expiration to 7 days from now
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + 7);
+
+    // Create invite code record
+    const createResponse = await client.graphql({
+      query: mutations.createTerriiInviteCode,
+      variables: {
+        input: {
+          code: newCode,
+          familyMemberID,
+          email: familyMember.email,
+          isUsed: false,
+          expiresAt: expirationDate.toISOString(),
+          createdByID: createdByUserID
+        }
       }
     });
-    
-    // Filter threads by care home through resident relationship
-    const allThreads = response.data.listTerriiMessageThreads.items;
-    const careHomeThreads = allThreads.filter((thread: any) => 
-      thread.resident?.careHomeID === careHomeId
-    );
-    
-    return careHomeThreads;
+
+    return { 
+      success: true, 
+      code: newCode,
+      email: familyMember.email
+    };
   } catch (error) {
-    console.error('Error listing message threads for care home:', error);
+    console.error('Error generating invite code:', error);
     throw error;
   }
-};
+}
 
 /**
- * Toggle thread starred status
- * @param threadId The ID of the thread
- * @param isStarred The new starred status
+ * Validate invite code and email combination
+ */
+export async function validateInviteCode(code: string, email: string) {
+  try {
+    // Validate both code AND email for security
+    const response = await client.graphql({
+      query: queries.listTerriiInviteCodes,
+      variables: { 
+        filter: { 
+          code: { eq: code },
+          email: { eq: email }
+        }
+      }
+    });
+
+    const inviteCodes = response.data?.listTerriiInviteCodes?.items || [];
+    
+    if (inviteCodes.length === 0) {
+      return { 
+        isValid: false, 
+        error: 'Invalid invite code or email combination. Please check both are correct.' 
+      };
+    }
+
+    const inviteCode = inviteCodes[0];
+
+    if (inviteCode.isUsed) {
+      return { isValid: false, error: 'This invite code has already been used' };
+    }
+
+    if (new Date(inviteCode.expiresAt) < new Date()) {
+      return { isValid: false, error: 'This invite code has expired' };
+    }
+
+    return {
+      isValid: true,
+      inviteCode,
+      familyMember: inviteCode.familyMember,
+      residentName: inviteCode.familyMember?.name || 'your loved one', // Use family member name since we don't have resident populated
+      careHomeName: 'the care home' // We'll need to fetch this separately if needed
+    };
+  } catch (error) {
+    console.error('Error validating invite code:', error);
+    return { isValid: false, error: 'Failed to validate invite code' };
+  }
+}
+
+/**
+ * Use invite code and link user to family member
+ */
+export async function useInviteCode(
+  code: string,
+  email: string,
+  userID: string
+): Promise<boolean> {
+  try {
+    // First validate the code and email combination
+    const validation = await validateInviteCode(code, email);
+    if (!validation.isValid) {
+      throw new Error(validation.error);
+    }
+
+    if (!validation.inviteCode?.id || !validation.familyMember?.id) {
+      throw new Error('Invalid invite code data');
+    }
+
+    // Mark invite code as used
+    await client.graphql({
+      query: mutations.updateTerriiInviteCode,
+      variables: {
+        input: {
+          id: validation.inviteCode.id,
+          isUsed: true,
+          usedAt: new Date().toISOString()
+        }
+      }
+    });
+
+    // Link user to family member record
+    await client.graphql({
+      query: mutations.updateTerriiResidentFamily,
+      variables: {
+        input: {
+          id: validation.familyMember.id,
+          userID,
+          isRegistered: true
+        }
+      }
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Error using invite code:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get residents for a family member user
+ */
+export async function getResidentsForFamilyMember(userID: string) {
+  try {
+    const response = await client.graphql({
+      query: `
+        query GetResidentsForFamilyMember($userID: ID!) {
+          listTerriiResidentFamilies(filter: { userID: { eq: $userID } }) {
+            items {
+              id
+              relationship
+              resident {
+                id
+                name
+                room
+                photo
+                careHome {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        }
+      `,
+      variables: { userID }
+    }) as any;
+
+    return response.data?.listTerriiResidentFamilies?.items?.map((item: any) => ({
+      ...item.resident,
+      relationshipType: item.relationship
+    })) || [];
+  } catch (error) {
+    console.error('Error getting residents for family member:', error);
+    return [];
+  }
+}
+
+// Alias export for compatibility with existing imports
+export const listMessageThreadsByCareHome = getMessageThreadsForCareHome;
+
+/**
+ * Toggle the starred status of a message thread
+ * @param threadId The thread ID
+ * @param isStarred New starred status
  * @returns The updated thread
  */
 export const toggleThreadStarred = async (threadId: string, isStarred: boolean) => {
@@ -1972,7 +2401,7 @@ export const toggleThreadStarred = async (threadId: string, isStarred: boolean) 
       variables: {
         input: {
           id: threadId,
-          isStarred: isStarred
+            isStarred
         }
       }
     });
@@ -1984,9 +2413,9 @@ export const toggleThreadStarred = async (threadId: string, isStarred: boolean) 
 };
 
 /**
- * Archive/unarchive a thread
- * @param threadId The ID of the thread
- * @param isArchived The new archived status
+ * Toggle the archived status of a message thread
+ * @param threadId The thread ID
+ * @param isArchived New archived status
  * @returns The updated thread
  */
 export const toggleThreadArchived = async (threadId: string, isArchived: boolean) => {
@@ -1996,7 +2425,7 @@ export const toggleThreadArchived = async (threadId: string, isArchived: boolean
       variables: {
         input: {
           id: threadId,
-          isArchived: isArchived
+          isArchived
         }
       }
     });
@@ -2007,43 +2436,43 @@ export const toggleThreadArchived = async (threadId: string, isArchived: boolean
   }
 };
 
-/**
- * List all TERRii user profiles (SuperAdmin function)
- * @returns Array of all TERRii user profiles with user and care home data
- */
-export const listAllTerriiUserProfiles = async () => {
+// Compatibility helpers for legacy imports
+export const incrementCommunityPostCommentCount = async (postId: string, delta = 1) => {
   try {
-    const response = await client.graphql({
-      query: queries.listTerriiUserProfiles,
-      variables: {
-        limit: 1000 // Set a high limit to get all profiles
-      }
+    const getResp: any = await client.graphql({
+      query: (queries as any).getTerriiCommunityPost,
+      variables: { id: postId }
     });
-    return response.data.listTerriiUserProfiles.items;
-  } catch (error) {
-    console.error('Error listing all TERRii user profiles:', error);
-    throw error;
+    const post = getResp.data?.getTerriiCommunityPost;
+    if (!post) throw new Error('Post not found');
+    const commentCount = (post.commentCount || 0) + delta;
+    const updateResp: any = await client.graphql({
+      query: mutations.updateTerriiCommunityPost,
+      variables: { input: { id: postId, commentCount } }
+    });
+    return updateResp.data.updateTerriiCommunityPost;
+  } catch (e) {
+    console.error('Error incrementing community post comment count', e);
+    throw e;
   }
 };
 
-/**
- * Delete a TERRii user profile (SuperAdmin function)
- * @param profileId The ID of the TERRii user profile to delete
- * @returns The deleted profile data
- */
-export const deleteTerriiUserProfile = async (profileId: string) => {
+export const incrementCommunityPostViews = async (postId: string, delta = 1) => {
   try {
-    const response = await client.graphql({
-      query: mutations.deleteTerriiUserProfile,
-      variables: {
-        input: {
-          id: profileId
-        }
-      }
+    const getResp: any = await client.graphql({
+      query: (queries as any).getTerriiCommunityPost,
+      variables: { id: postId }
     });
-    return response.data.deleteTerriiUserProfile;
-  } catch (error) {
-    console.error('Error deleting TERRii user profile:', error);
-    throw error;
+    const post = getResp.data?.getTerriiCommunityPost;
+    if (!post) throw new Error('Post not found');
+    const viewCount = (post.viewCount || 0) + delta;
+    const updateResp: any = await client.graphql({
+      query: mutations.updateTerriiCommunityPost,
+      variables: { input: { id: postId, viewCount } }
+    });
+    return updateResp.data.updateTerriiCommunityPost;
+  } catch (e) {
+    console.error('Error incrementing community post views', e);
+    throw e;
   }
 };

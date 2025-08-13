@@ -7566,6 +7566,11 @@ export const createUser = /* GraphQL */ `mutation CreateUser(
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -7680,6 +7685,11 @@ export const updateUser = /* GraphQL */ `mutation UpdateUser(
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -7794,6 +7804,11 @@ export const deleteUser = /* GraphQL */ `mutation DeleteUser(
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -9061,6 +9076,11 @@ export const createTerriiCareHome = /* GraphQL */ `mutation CreateTerriiCareHome
       nextToken
       __typename
     }
+    communityMode
+    allowFamilyPosts
+    requireFamilyPostApproval
+    allowPostReactions
+    allowPostComments
     createdAt
     updatedAt
     __typename
@@ -9120,6 +9140,11 @@ export const updateTerriiCareHome = /* GraphQL */ `mutation UpdateTerriiCareHome
       nextToken
       __typename
     }
+    communityMode
+    allowFamilyPosts
+    requireFamilyPostApproval
+    allowPostReactions
+    allowPostComments
     createdAt
     updatedAt
     __typename
@@ -9179,6 +9204,11 @@ export const deleteTerriiCareHome = /* GraphQL */ `mutation DeleteTerriiCareHome
       nextToken
       __typename
     }
+    communityMode
+    allowFamilyPosts
+    requireFamilyPostApproval
+    allowPostReactions
+    allowPostComments
     createdAt
     updatedAt
     __typename
@@ -9259,6 +9289,11 @@ export const createTerriiUserProfile = /* GraphQL */ `mutation CreateTerriiUserP
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -9345,6 +9380,11 @@ export const updateTerriiUserProfile = /* GraphQL */ `mutation UpdateTerriiUserP
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -9431,6 +9471,11 @@ export const deleteTerriiUserProfile = /* GraphQL */ `mutation DeleteTerriiUserP
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -9473,6 +9518,11 @@ export const createTerriiResident = /* GraphQL */ `mutation CreateTerriiResident
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -9489,6 +9539,8 @@ export const createTerriiResident = /* GraphQL */ `mutation CreateTerriiResident
         phone
         email
         residentID
+        userID
+        isRegistered
         createdAt
         updatedAt
         __typename
@@ -9642,6 +9694,11 @@ export const updateTerriiResident = /* GraphQL */ `mutation UpdateTerriiResident
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -9658,6 +9715,8 @@ export const updateTerriiResident = /* GraphQL */ `mutation UpdateTerriiResident
         phone
         email
         residentID
+        userID
+        isRegistered
         createdAt
         updatedAt
         __typename
@@ -9811,6 +9870,11 @@ export const deleteTerriiResident = /* GraphQL */ `mutation DeleteTerriiResident
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -9827,6 +9891,8 @@ export const deleteTerriiResident = /* GraphQL */ `mutation DeleteTerriiResident
         phone
         email
         residentID
+        userID
+        isRegistered
         createdAt
         updatedAt
         __typename
@@ -9979,6 +10045,11 @@ export const createTerriiResidentFamily = /* GraphQL */ `mutation CreateTerriiRe
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10036,6 +10107,8 @@ export const createTerriiResidentFamily = /* GraphQL */ `mutation CreateTerriiRe
       terriiResidentEmergencyContactId
       __typename
     }
+    userID
+    isRegistered
     createdAt
     updatedAt
     __typename
@@ -10071,6 +10144,11 @@ export const updateTerriiResidentFamily = /* GraphQL */ `mutation UpdateTerriiRe
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10128,6 +10206,8 @@ export const updateTerriiResidentFamily = /* GraphQL */ `mutation UpdateTerriiRe
       terriiResidentEmergencyContactId
       __typename
     }
+    userID
+    isRegistered
     createdAt
     updatedAt
     __typename
@@ -10163,6 +10243,11 @@ export const deleteTerriiResidentFamily = /* GraphQL */ `mutation DeleteTerriiRe
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10220,6 +10305,8 @@ export const deleteTerriiResidentFamily = /* GraphQL */ `mutation DeleteTerriiRe
       terriiResidentEmergencyContactId
       __typename
     }
+    userID
+    isRegistered
     createdAt
     updatedAt
     __typename
@@ -10269,6 +10356,11 @@ export const createTerriiResidentMedical = /* GraphQL */ `mutation CreateTerriiR
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10375,6 +10467,11 @@ export const updateTerriiResidentMedical = /* GraphQL */ `mutation UpdateTerriiR
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10481,6 +10578,11 @@ export const deleteTerriiResidentMedical = /* GraphQL */ `mutation DeleteTerriiR
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10729,6 +10831,11 @@ export const createTerriiResidentCarePreferences = /* GraphQL */ `mutation Creat
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10821,6 +10928,11 @@ export const updateTerriiResidentCarePreferences = /* GraphQL */ `mutation Updat
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10913,6 +11025,11 @@ export const deleteTerriiResidentCarePreferences = /* GraphQL */ `mutation Delet
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11005,6 +11122,11 @@ export const createTerriiResidentActivity = /* GraphQL */ `mutation CreateTerrii
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11097,6 +11219,11 @@ export const updateTerriiResidentActivity = /* GraphQL */ `mutation UpdateTerrii
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11189,6 +11316,11 @@ export const deleteTerriiResidentActivity = /* GraphQL */ `mutation DeleteTerrii
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11281,6 +11413,11 @@ export const createTerriiResidentEmergencyContact = /* GraphQL */ `mutation Crea
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11373,6 +11510,11 @@ export const updateTerriiResidentEmergencyContact = /* GraphQL */ `mutation Upda
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11465,6 +11607,11 @@ export const deleteTerriiResidentEmergencyContact = /* GraphQL */ `mutation Dele
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11553,6 +11700,11 @@ export const createTerriiMessageThread = /* GraphQL */ `mutation CreateTerriiMes
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11686,6 +11838,11 @@ export const updateTerriiMessageThread = /* GraphQL */ `mutation UpdateTerriiMes
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11819,6 +11976,11 @@ export const deleteTerriiMessageThread = /* GraphQL */ `mutation DeleteTerriiMes
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12175,6 +12337,11 @@ export const createTerriiMoment = /* GraphQL */ `mutation CreateTerriiMoment(
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12201,6 +12368,11 @@ export const createTerriiMoment = /* GraphQL */ `mutation CreateTerriiMoment(
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12276,6 +12448,11 @@ export const createTerriiMoment = /* GraphQL */ `mutation CreateTerriiMoment(
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -12289,6 +12466,12 @@ export const createTerriiMoment = /* GraphQL */ `mutation CreateTerriiMoment(
         content
         createdByID
         momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -12350,6 +12533,11 @@ export const updateTerriiMoment = /* GraphQL */ `mutation UpdateTerriiMoment(
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12376,6 +12564,11 @@ export const updateTerriiMoment = /* GraphQL */ `mutation UpdateTerriiMoment(
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12451,6 +12644,11 @@ export const updateTerriiMoment = /* GraphQL */ `mutation UpdateTerriiMoment(
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -12464,6 +12662,12 @@ export const updateTerriiMoment = /* GraphQL */ `mutation UpdateTerriiMoment(
         content
         createdByID
         momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -12525,6 +12729,11 @@ export const deleteTerriiMoment = /* GraphQL */ `mutation DeleteTerriiMoment(
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12551,6 +12760,11 @@ export const deleteTerriiMoment = /* GraphQL */ `mutation DeleteTerriiMoment(
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12626,6 +12840,11 @@ export const deleteTerriiMoment = /* GraphQL */ `mutation DeleteTerriiMoment(
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -12639,6 +12858,12 @@ export const deleteTerriiMoment = /* GraphQL */ `mutation DeleteTerriiMoment(
         content
         createdByID
         momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -12700,6 +12925,11 @@ export const createTerriiMomentComment = /* GraphQL */ `mutation CreateTerriiMom
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12755,6 +12985,11 @@ export const createTerriiMomentComment = /* GraphQL */ `mutation CreateTerriiMom
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12771,6 +13006,31 @@ export const createTerriiMomentComment = /* GraphQL */ `mutation CreateTerriiMom
       updatedAt
       __typename
     }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
     createdAt
     updatedAt
     __typename
@@ -12824,6 +13084,11 @@ export const updateTerriiMomentComment = /* GraphQL */ `mutation UpdateTerriiMom
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12879,6 +13144,11 @@ export const updateTerriiMomentComment = /* GraphQL */ `mutation UpdateTerriiMom
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12895,6 +13165,31 @@ export const updateTerriiMomentComment = /* GraphQL */ `mutation UpdateTerriiMom
       updatedAt
       __typename
     }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
     createdAt
     updatedAt
     __typename
@@ -12948,6 +13243,11 @@ export const deleteTerriiMomentComment = /* GraphQL */ `mutation DeleteTerriiMom
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -13003,6 +13303,11 @@ export const deleteTerriiMomentComment = /* GraphQL */ `mutation DeleteTerriiMom
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -13019,6 +13324,31 @@ export const deleteTerriiMomentComment = /* GraphQL */ `mutation DeleteTerriiMom
       updatedAt
       __typename
     }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
     createdAt
     updatedAt
     __typename
@@ -13034,6 +13364,8 @@ export const createTerriiCommunityPost = /* GraphQL */ `mutation CreateTerriiCom
 ) {
   createTerriiCommunityPost(input: $input, condition: $condition) {
     id
+    title
+    lowerCaseTitle
     content
     createdByID
     createdBy {
@@ -13072,6 +13404,11 @@ export const createTerriiCommunityPost = /* GraphQL */ `mutation CreateTerriiCom
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -13100,19 +13437,34 @@ export const createTerriiCommunityPost = /* GraphQL */ `mutation CreateTerriiCom
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
     }
+    category
     media
     tags
     likes
+    heartCount
+    viewCount
+    commentCount
     comments {
       items {
         id
         content
         createdByID
         postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -13123,6 +13475,62 @@ export const createTerriiCommunityPost = /* GraphQL */ `mutation CreateTerriiCom
     isPinned
     isAnnouncement
     mode
+    status
+    requiresApproval
+    approvedAt
+    approvedByID
+    approvedBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    isDeleted
     createdAt
     updatedAt
     __typename
@@ -13138,6 +13546,8 @@ export const updateTerriiCommunityPost = /* GraphQL */ `mutation UpdateTerriiCom
 ) {
   updateTerriiCommunityPost(input: $input, condition: $condition) {
     id
+    title
+    lowerCaseTitle
     content
     createdByID
     createdBy {
@@ -13176,6 +13586,11 @@ export const updateTerriiCommunityPost = /* GraphQL */ `mutation UpdateTerriiCom
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -13204,19 +13619,34 @@ export const updateTerriiCommunityPost = /* GraphQL */ `mutation UpdateTerriiCom
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
     }
+    category
     media
     tags
     likes
+    heartCount
+    viewCount
+    commentCount
     comments {
       items {
         id
         content
         createdByID
         postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -13227,6 +13657,62 @@ export const updateTerriiCommunityPost = /* GraphQL */ `mutation UpdateTerriiCom
     isPinned
     isAnnouncement
     mode
+    status
+    requiresApproval
+    approvedAt
+    approvedByID
+    approvedBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    isDeleted
     createdAt
     updatedAt
     __typename
@@ -13242,6 +13728,8 @@ export const deleteTerriiCommunityPost = /* GraphQL */ `mutation DeleteTerriiCom
 ) {
   deleteTerriiCommunityPost(input: $input, condition: $condition) {
     id
+    title
+    lowerCaseTitle
     content
     createdByID
     createdBy {
@@ -13280,6 +13768,11 @@ export const deleteTerriiCommunityPost = /* GraphQL */ `mutation DeleteTerriiCom
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -13308,19 +13801,34 @@ export const deleteTerriiCommunityPost = /* GraphQL */ `mutation DeleteTerriiCom
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
     }
+    category
     media
     tags
     likes
+    heartCount
+    viewCount
+    commentCount
     comments {
       items {
         id
         content
         createdByID
         postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -13331,6 +13839,62 @@ export const deleteTerriiCommunityPost = /* GraphQL */ `mutation DeleteTerriiCom
     isPinned
     isAnnouncement
     mode
+    status
+    requiresApproval
+    approvedAt
+    approvedByID
+    approvedBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    isDeleted
     createdAt
     updatedAt
     __typename
@@ -13339,6 +13903,420 @@ export const deleteTerriiCommunityPost = /* GraphQL */ `mutation DeleteTerriiCom
 ` as GeneratedMutation<
   APITypes.DeleteTerriiCommunityPostMutationVariables,
   APITypes.DeleteTerriiCommunityPostMutation
+>;
+export const createTerriiCommunityPostLike = /* GraphQL */ `mutation CreateTerriiCommunityPostLike(
+  $input: CreateTerriiCommunityPostLikeInput!
+  $condition: ModelTerriiCommunityPostLikeConditionInput
+) {
+  createTerriiCommunityPostLike(input: $input, condition: $condition) {
+    id
+    postID
+    post {
+      id
+      title
+      lowerCaseTitle
+      content
+      createdByID
+      createdBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      category
+      media
+      tags
+      likes
+      heartCount
+      viewCount
+      commentCount
+      comments {
+        nextToken
+        __typename
+      }
+      isPinned
+      isAnnouncement
+      mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
+      createdAt
+      updatedAt
+      __typename
+    }
+    userProfileID
+    userProfile {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.CreateTerriiCommunityPostLikeMutationVariables,
+  APITypes.CreateTerriiCommunityPostLikeMutation
+>;
+export const updateTerriiCommunityPostLike = /* GraphQL */ `mutation UpdateTerriiCommunityPostLike(
+  $input: UpdateTerriiCommunityPostLikeInput!
+  $condition: ModelTerriiCommunityPostLikeConditionInput
+) {
+  updateTerriiCommunityPostLike(input: $input, condition: $condition) {
+    id
+    postID
+    post {
+      id
+      title
+      lowerCaseTitle
+      content
+      createdByID
+      createdBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      category
+      media
+      tags
+      likes
+      heartCount
+      viewCount
+      commentCount
+      comments {
+        nextToken
+        __typename
+      }
+      isPinned
+      isAnnouncement
+      mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
+      createdAt
+      updatedAt
+      __typename
+    }
+    userProfileID
+    userProfile {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdateTerriiCommunityPostLikeMutationVariables,
+  APITypes.UpdateTerriiCommunityPostLikeMutation
+>;
+export const deleteTerriiCommunityPostLike = /* GraphQL */ `mutation DeleteTerriiCommunityPostLike(
+  $input: DeleteTerriiCommunityPostLikeInput!
+  $condition: ModelTerriiCommunityPostLikeConditionInput
+) {
+  deleteTerriiCommunityPostLike(input: $input, condition: $condition) {
+    id
+    postID
+    post {
+      id
+      title
+      lowerCaseTitle
+      content
+      createdByID
+      createdBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      category
+      media
+      tags
+      likes
+      heartCount
+      viewCount
+      commentCount
+      comments {
+        nextToken
+        __typename
+      }
+      isPinned
+      isAnnouncement
+      mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
+      createdAt
+      updatedAt
+      __typename
+    }
+    userProfileID
+    userProfile {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeleteTerriiCommunityPostLikeMutationVariables,
+  APITypes.DeleteTerriiCommunityPostLikeMutation
 >;
 export const createTerriiCommunityComment = /* GraphQL */ `mutation CreateTerriiCommunityComment(
   $input: CreateTerriiCommunityCommentInput!
@@ -13384,6 +14362,11 @@ export const createTerriiCommunityComment = /* GraphQL */ `mutation CreateTerrii
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -13397,6 +14380,8 @@ export const createTerriiCommunityComment = /* GraphQL */ `mutation CreateTerrii
     postID
     post {
       id
+      title
+      lowerCaseTitle
       content
       createdByID
       createdBy {
@@ -13420,13 +14405,22 @@ export const createTerriiCommunityComment = /* GraphQL */ `mutation CreateTerrii
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
       }
+      category
       media
       tags
       likes
+      heartCount
+      viewCount
+      commentCount
       comments {
         nextToken
         __typename
@@ -13434,10 +14428,51 @@ export const createTerriiCommunityComment = /* GraphQL */ `mutation CreateTerrii
       isPinned
       isAnnouncement
       mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
       createdAt
       updatedAt
       __typename
     }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
     createdAt
     updatedAt
     __typename
@@ -13491,6 +14526,11 @@ export const updateTerriiCommunityComment = /* GraphQL */ `mutation UpdateTerrii
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -13504,6 +14544,8 @@ export const updateTerriiCommunityComment = /* GraphQL */ `mutation UpdateTerrii
     postID
     post {
       id
+      title
+      lowerCaseTitle
       content
       createdByID
       createdBy {
@@ -13527,13 +14569,22 @@ export const updateTerriiCommunityComment = /* GraphQL */ `mutation UpdateTerrii
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
       }
+      category
       media
       tags
       likes
+      heartCount
+      viewCount
+      commentCount
       comments {
         nextToken
         __typename
@@ -13541,10 +14592,51 @@ export const updateTerriiCommunityComment = /* GraphQL */ `mutation UpdateTerrii
       isPinned
       isAnnouncement
       mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
       createdAt
       updatedAt
       __typename
     }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
     createdAt
     updatedAt
     __typename
@@ -13598,6 +14690,11 @@ export const deleteTerriiCommunityComment = /* GraphQL */ `mutation DeleteTerrii
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -13611,6 +14708,8 @@ export const deleteTerriiCommunityComment = /* GraphQL */ `mutation DeleteTerrii
     postID
     post {
       id
+      title
+      lowerCaseTitle
       content
       createdByID
       createdBy {
@@ -13634,13 +14733,22 @@ export const deleteTerriiCommunityComment = /* GraphQL */ `mutation DeleteTerrii
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
       }
+      category
       media
       tags
       likes
+      heartCount
+      viewCount
+      commentCount
       comments {
         nextToken
         __typename
@@ -13648,6 +14756,151 @@ export const deleteTerriiCommunityComment = /* GraphQL */ `mutation DeleteTerrii
       isPinned
       isAnnouncement
       mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
+      createdAt
+      updatedAt
+      __typename
+    }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeleteTerriiCommunityCommentMutationVariables,
+  APITypes.DeleteTerriiCommunityCommentMutation
+>;
+export const createTerriiInviteCode = /* GraphQL */ `mutation CreateTerriiInviteCode(
+  $input: CreateTerriiInviteCodeInput!
+  $condition: ModelTerriiInviteCodeConditionInput
+) {
+  createTerriiInviteCode(input: $input, condition: $condition) {
+    id
+    code
+    familyMemberID
+    familyMember {
+      id
+      name
+      relationship
+      phone
+      email
+      residentID
+      resident {
+        id
+        name
+        room
+        photo
+        careHomeID
+        dateOfBirth
+        admissionDate
+        status
+        lastUpdate
+        unreadMessages
+        createdAt
+        updatedAt
+        terriiResidentMedicalInfoId
+        terriiResidentCarePreferencesId
+        terriiResidentEmergencyContactId
+        __typename
+      }
+      userID
+      isRegistered
+      createdAt
+      updatedAt
+      __typename
+    }
+    email
+    isUsed
+    usedAt
+    expiresAt
+    createdByID
+    createdBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
       createdAt
       updatedAt
       __typename
@@ -13658,8 +14911,216 @@ export const deleteTerriiCommunityComment = /* GraphQL */ `mutation DeleteTerrii
   }
 }
 ` as GeneratedMutation<
-  APITypes.DeleteTerriiCommunityCommentMutationVariables,
-  APITypes.DeleteTerriiCommunityCommentMutation
+  APITypes.CreateTerriiInviteCodeMutationVariables,
+  APITypes.CreateTerriiInviteCodeMutation
+>;
+export const updateTerriiInviteCode = /* GraphQL */ `mutation UpdateTerriiInviteCode(
+  $input: UpdateTerriiInviteCodeInput!
+  $condition: ModelTerriiInviteCodeConditionInput
+) {
+  updateTerriiInviteCode(input: $input, condition: $condition) {
+    id
+    code
+    familyMemberID
+    familyMember {
+      id
+      name
+      relationship
+      phone
+      email
+      residentID
+      resident {
+        id
+        name
+        room
+        photo
+        careHomeID
+        dateOfBirth
+        admissionDate
+        status
+        lastUpdate
+        unreadMessages
+        createdAt
+        updatedAt
+        terriiResidentMedicalInfoId
+        terriiResidentCarePreferencesId
+        terriiResidentEmergencyContactId
+        __typename
+      }
+      userID
+      isRegistered
+      createdAt
+      updatedAt
+      __typename
+    }
+    email
+    isUsed
+    usedAt
+    expiresAt
+    createdByID
+    createdBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdateTerriiInviteCodeMutationVariables,
+  APITypes.UpdateTerriiInviteCodeMutation
+>;
+export const deleteTerriiInviteCode = /* GraphQL */ `mutation DeleteTerriiInviteCode(
+  $input: DeleteTerriiInviteCodeInput!
+  $condition: ModelTerriiInviteCodeConditionInput
+) {
+  deleteTerriiInviteCode(input: $input, condition: $condition) {
+    id
+    code
+    familyMemberID
+    familyMember {
+      id
+      name
+      relationship
+      phone
+      email
+      residentID
+      resident {
+        id
+        name
+        room
+        photo
+        careHomeID
+        dateOfBirth
+        admissionDate
+        status
+        lastUpdate
+        unreadMessages
+        createdAt
+        updatedAt
+        terriiResidentMedicalInfoId
+        terriiResidentCarePreferencesId
+        terriiResidentEmergencyContactId
+        __typename
+      }
+      userID
+      isRegistered
+      createdAt
+      updatedAt
+      __typename
+    }
+    email
+    isUsed
+    usedAt
+    expiresAt
+    createdByID
+    createdBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeleteTerriiInviteCodeMutationVariables,
+  APITypes.DeleteTerriiInviteCodeMutation
 >;
 export const createMyFriendsUser = /* GraphQL */ `mutation CreateMyFriendsUser(
   $input: CreateMyFriendsUserInput!

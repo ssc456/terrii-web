@@ -5,7 +5,7 @@
  **************************************************************************/
 
 import * as React from "react";
-import { GridProps, TextFieldProps } from "@aws-amplify/ui-react";
+import { GridProps, SelectFieldProps, SwitchFieldProps, TextFieldProps } from "@aws-amplify/ui-react";
 export declare type EscapeHatchProps = {
     [elementHierarchy: string]: Record<string, unknown>;
 } | null;
@@ -29,6 +29,11 @@ export declare type TerriiCareHomeCreateFormInputValues = {
     phoneNumber?: string;
     email?: string;
     website?: string;
+    communityMode?: string;
+    allowFamilyPosts?: boolean;
+    requireFamilyPostApproval?: boolean;
+    allowPostReactions?: boolean;
+    allowPostComments?: boolean;
     createdAt?: string;
     updatedAt?: string;
 };
@@ -40,6 +45,11 @@ export declare type TerriiCareHomeCreateFormValidationValues = {
     phoneNumber?: ValidationFunction<string>;
     email?: ValidationFunction<string>;
     website?: ValidationFunction<string>;
+    communityMode?: ValidationFunction<string>;
+    allowFamilyPosts?: ValidationFunction<boolean>;
+    requireFamilyPostApproval?: ValidationFunction<boolean>;
+    allowPostReactions?: ValidationFunction<boolean>;
+    allowPostComments?: ValidationFunction<boolean>;
     createdAt?: ValidationFunction<string>;
     updatedAt?: ValidationFunction<string>;
 };
@@ -53,6 +63,11 @@ export declare type TerriiCareHomeCreateFormOverridesProps = {
     phoneNumber?: PrimitiveOverrideProps<TextFieldProps>;
     email?: PrimitiveOverrideProps<TextFieldProps>;
     website?: PrimitiveOverrideProps<TextFieldProps>;
+    communityMode?: PrimitiveOverrideProps<SelectFieldProps>;
+    allowFamilyPosts?: PrimitiveOverrideProps<SwitchFieldProps>;
+    requireFamilyPostApproval?: PrimitiveOverrideProps<SwitchFieldProps>;
+    allowPostReactions?: PrimitiveOverrideProps<SwitchFieldProps>;
+    allowPostComments?: PrimitiveOverrideProps<SwitchFieldProps>;
     createdAt?: PrimitiveOverrideProps<TextFieldProps>;
     updatedAt?: PrimitiveOverrideProps<TextFieldProps>;
 } & EscapeHatchProps;

@@ -18,6 +18,7 @@ interface PostCardProps {
   onClick: (postId: string) => void;
   onAction?: (postId: string, action: string) => void;
   onLike?: (postId: string) => void;
+  onHeart?: (postId: string) => void; // new
   onComment?: (postId: string, content: string) => void;
   showCheckbox?: boolean;
   isSelected?: boolean;
@@ -30,12 +31,17 @@ export function PostCard({
   onClick,
   onAction,
   onLike,
+  onHeart,
   onComment,
   showCheckbox = false,
   isSelected = false,
   onSelectChange
 }: PostCardProps) {
   const [isHovering, setIsHovering] = useState(false);
+  // NEW: local UI state for improved comment UX
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -49,6 +55,27 @@ export function PostCard({
   const handleSelectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
     onSelectChange?.(post.id, e.target.checked);
+  };
+
+  const handleSubmitComment = async () => {
+    if (!commentText.trim() || !onComment) return;
+    try {
+      setSubmittingComment(true);
+      await onComment(post.id, commentText.trim());
+      setCommentText('');
+      // Keep comments section open
+    } catch (e) {
+      console.error('Failed to submit comment', e);
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      handleSubmitComment();
+    }
   };
 
   return (
@@ -202,62 +229,126 @@ export function PostCard({
                 )}
               </div>
             )}
-            
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-4">
-                <button 
-                  className="flex items-center space-x-1 text-terrii-text-light hover:text-terrii-blue transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onLike?.(post.id);
-                  }}
-                  disabled={!onLike}
-                >
-                  <ThumbsUp className={`h-4 w-4 ${post.reactions.hasLiked ? 'text-terrii-blue fill-current' : ''}`} />
-                  <span>{post.reactions.likes.count}</span>
-                </button>
-                <div className="flex items-center space-x-1 text-terrii-text-light">
-                  <Heart className={`h-4 w-4 ${post.reactions.hasHearted ? 'text-terrii-error fill-current' : ''}`} />
-                  <span>{post.reactions.hearts.count}</span>
-                </div>
-                <button 
-                  className="flex items-center space-x-1 text-terrii-text-light hover:text-terrii-primary transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // For now, just trigger a simple comment - in a real app you'd open a comment dialog
-                    const content = prompt('Add a comment:');
-                    if (content && onComment) {
-                      onComment(post.id, content);
-                    }
-                  }}
-                  disabled={!onComment}
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  <span>{post.replies.length}</span>
-                </button>
-                <div className="flex items-center space-x-1 text-terrii-text-light">
-                  <Eye className="h-4 w-4" />
-                  <span>{post.views}</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline" className="text-xs">
-                  {post.category}
-                </Badge>
-                {post.tags.slice(0, 2).map(tag => (
-                  <Badge key={tag} variant="outline" className="text-xs hidden sm:inline-flex">
-                    {tag}
-                  </Badge>
-                ))}
-                {post.tags.length > 2 && (
-                  <Badge variant="outline" className="text-xs hidden sm:inline-flex">
-                    +{post.tags.length - 2}
-                  </Badge>
-                )}
+          </div>
+        </div>
+        {/* Enhanced comments & single stats row */}
+        <div className="mt-3">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <button 
+                className="flex items-center space-x-1 text-terrii-text-light hover:text-terrii-blue transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLike?.(post.id);
+                }}
+                disabled={!onLike}
+              >
+                <ThumbsUp className={`h-4 w-4 ${post.reactions.hasLiked ? 'text-terrii-blue fill-current' : ''}`} />
+                <span>{post.reactions.likes.count}</span>
+              </button>
+              <button 
+                className="flex items-center space-x-1 text-terrii-text-light hover:text-terrii-error transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onHeart?.(post.id);
+                }}
+                disabled={!onHeart}
+              >
+                <Heart className={`h-4 w-4 ${post.reactions.hasHearted ? 'text-terrii-error fill-current' : ''}`} />
+                <span>{post.reactions.hearts.count}</span>
+              </button>
+              <button 
+                className="flex items-center space-x-1 text-terrii-text-light hover:text-terrii-primary transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowComments(v => !v);
+                }}
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span>{post.replies.length}</span>
+              </button>
+              <div className="flex items-center space-x-1 text-terrii-text-light">
+                <Eye className="h-4 w-4" />
+                <span>{post.views}</span>
               </div>
             </div>
+            <div className="flex items-center space-x-2">
+              <Badge variant="outline" className="text-xs">
+                {post.category}
+              </Badge>
+              {post.tags.slice(0, 2).map(tag => (
+                <Badge key={tag} variant="outline" className="text-xs hidden sm:inline-flex">
+                  {tag}
+                </Badge>
+              ))}
+              {post.tags.length > 2 && (
+                <Badge variant="outline" className="text-xs hidden sm:inline-flex">
+                  +{post.tags.length - 2}
+                </Badge>
+              )}
+            </div>
           </div>
+
+          {showComments && (
+            <div 
+              className="mt-4 border-t border-terrii-border-light pt-4" 
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h4 className="text-sm font-semibold text-terrii-text-secondary mb-2">
+                Comments ({post.replies.length})
+              </h4>
+              <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                {post.replies.length === 0 && (
+                  <div className="text-xs text-terrii-text-light italic">No comments yet. Be the first to comment.</div>
+                )}
+                {post.replies.map(reply => (
+                  <div key={reply.id} className="flex items-start space-x-2">
+                    <div className="h-8 w-8 rounded-full bg-terrii-blue/10 flex items-center justify-center text-terrii-blue text-xs font-medium flex-shrink-0">
+                      {reply.author.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-terrii-text-light mb-0.5 flex items-center gap-2">
+                        <span className="font-medium text-terrii-text-primary">{reply.author.name}</span>
+                        <span>{formatDistanceToNow(reply.timestamp, { addSuffix: true })}</span>
+                      </div>
+                      <p className="text-sm text-terrii-text-primary whitespace-pre-wrap break-words">
+                        {reply.content}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {onComment && (
+                <div className="mt-3">
+                  <textarea
+                    value={commentText}
+                    onChange={e => setCommentText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Write a comment... (Ctrl/Cmd+Enter to send)"
+                    className="w-full text-sm rounded-md border border-terrii-border-light bg-white/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-terrii-blue/30 p-2 resize-y min-h-[60px]"
+                  />
+                  <div className="flex justify-end mt-2 gap-2">
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => { setShowComments(false); }}
+                    >
+                      Close
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={!commentText.trim() || submittingComment}
+                      onClick={handleSubmitComment}
+                    >
+                      {submittingComment ? 'Posting...' : 'Post Comment'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </Card>

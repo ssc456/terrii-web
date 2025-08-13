@@ -4388,6 +4388,11 @@ export const getUser = /* GraphQL */ `query GetUser($id: ID!) {
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -5226,6 +5231,11 @@ export const getTerriiCareHome = /* GraphQL */ `query GetTerriiCareHome($id: ID!
       nextToken
       __typename
     }
+    communityMode
+    allowFamilyPosts
+    requireFamilyPostApproval
+    allowPostReactions
+    allowPostComments
     createdAt
     updatedAt
     __typename
@@ -5251,38 +5261,18 @@ export const listTerriiCareHomes = /* GraphQL */ `query ListTerriiCareHomes(
       email
       website
       adminUsers {
-        items {
-          id
-          userID
-          role
-          createdAt
-          updatedAt
-          __typename
-        }
         nextToken
         __typename
       }
       residents {
-        items {
-          id
-          name
-          room
-          photo
-          dateOfBirth
-          admissionDate
-          status
-          lastUpdate
-          unreadMessages
-          createdAt
-          updatedAt
-          terriiResidentMedicalInfoId
-          terriiResidentCarePreferencesId
-          terriiResidentEmergencyContactId
-          __typename
-        }
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -5363,6 +5353,11 @@ export const getTerriiUserProfile = /* GraphQL */ `query GetTerriiUserProfile($i
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -5424,6 +5419,11 @@ export const listTerriiUserProfiles = /* GraphQL */ `query ListTerriiUserProfile
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -5466,6 +5466,11 @@ export const getTerriiResident = /* GraphQL */ `query GetTerriiResident($id: ID!
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -5482,6 +5487,8 @@ export const getTerriiResident = /* GraphQL */ `query GetTerriiResident($id: ID!
         phone
         email
         residentID
+        userID
+        isRegistered
         createdAt
         updatedAt
         __typename
@@ -5629,6 +5636,11 @@ export const listTerriiResidents = /* GraphQL */ `query ListTerriiResidents(
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -5717,6 +5729,11 @@ export const getTerriiResidentFamily = /* GraphQL */ `query GetTerriiResidentFam
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -5774,6 +5791,8 @@ export const getTerriiResidentFamily = /* GraphQL */ `query GetTerriiResidentFam
       terriiResidentEmergencyContactId
       __typename
     }
+    userID
+    isRegistered
     createdAt
     updatedAt
     __typename
@@ -5818,6 +5837,8 @@ export const listTerriiResidentFamilies = /* GraphQL */ `query ListTerriiResiden
         terriiResidentEmergencyContactId
         __typename
       }
+      userID
+      isRegistered
       createdAt
       updatedAt
       __typename
@@ -5867,6 +5888,11 @@ export const getTerriiResidentMedical = /* GraphQL */ `query GetTerriiResidentMe
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -6095,6 +6121,11 @@ export const getTerriiResidentCarePreferences = /* GraphQL */ `query GetTerriiRe
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -6231,6 +6262,11 @@ export const getTerriiResidentActivity = /* GraphQL */ `query GetTerriiResidentA
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -6420,6 +6456,11 @@ export const getTerriiResidentEmergencyContact = /* GraphQL */ `query GetTerriiR
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -6552,6 +6593,11 @@ export const getTerriiMessageThread = /* GraphQL */ `query GetTerriiMessageThrea
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -6918,6 +6964,11 @@ export const getTerriiMoment = /* GraphQL */ `query GetTerriiMoment($id: ID!) {
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -6944,6 +6995,11 @@ export const getTerriiMoment = /* GraphQL */ `query GetTerriiMoment($id: ID!) {
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -7019,6 +7075,11 @@ export const getTerriiMoment = /* GraphQL */ `query GetTerriiMoment($id: ID!) {
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -7032,6 +7093,12 @@ export const getTerriiMoment = /* GraphQL */ `query GetTerriiMoment($id: ID!) {
         content
         createdByID
         momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -7099,6 +7166,11 @@ export const listTerriiMoments = /* GraphQL */ `query ListTerriiMoments(
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -7164,6 +7236,11 @@ export const getTerriiMomentComment = /* GraphQL */ `query GetTerriiMomentCommen
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -7219,6 +7296,11 @@ export const getTerriiMomentComment = /* GraphQL */ `query GetTerriiMomentCommen
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -7235,6 +7317,31 @@ export const getTerriiMomentComment = /* GraphQL */ `query GetTerriiMomentCommen
       updatedAt
       __typename
     }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
     createdAt
     updatedAt
     __typename
@@ -7284,6 +7391,16 @@ export const listTerriiMomentComments = /* GraphQL */ `query ListTerriiMomentCom
         updatedAt
         __typename
       }
+      parentCommentID
+      replies {
+        nextToken
+        __typename
+      }
+      likeCount
+      replyCount
+      mentions
+      isDeleted
+      editedAt
       createdAt
       updatedAt
       __typename
@@ -7342,6 +7459,16 @@ export const commentsByMoment = /* GraphQL */ `query CommentsByMoment(
         updatedAt
         __typename
       }
+      parentCommentID
+      replies {
+        nextToken
+        __typename
+      }
+      likeCount
+      replyCount
+      mentions
+      isDeleted
+      editedAt
       createdAt
       updatedAt
       __typename
@@ -7354,9 +7481,79 @@ export const commentsByMoment = /* GraphQL */ `query CommentsByMoment(
   APITypes.CommentsByMomentQueryVariables,
   APITypes.CommentsByMomentQuery
 >;
+export const momentCommentsByParent = /* GraphQL */ `query MomentCommentsByParent(
+  $parentCommentID: ID!
+  $createdAt: ModelStringKeyConditionInput
+  $sortDirection: ModelSortDirection
+  $filter: ModelTerriiMomentCommentFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  momentCommentsByParent(
+    parentCommentID: $parentCommentID
+    createdAt: $createdAt
+    sortDirection: $sortDirection
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+  ) {
+    items {
+      id
+      content
+      createdByID
+      createdBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      momentID
+      moment {
+        id
+        content
+        createdByID
+        residentID
+        careHomeID
+        media
+        tags
+        likes
+        isPrivate
+        createdAt
+        updatedAt
+        __typename
+      }
+      parentCommentID
+      replies {
+        nextToken
+        __typename
+      }
+      likeCount
+      replyCount
+      mentions
+      isDeleted
+      editedAt
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.MomentCommentsByParentQueryVariables,
+  APITypes.MomentCommentsByParentQuery
+>;
 export const getTerriiCommunityPost = /* GraphQL */ `query GetTerriiCommunityPost($id: ID!) {
   getTerriiCommunityPost(id: $id) {
     id
+    title
+    lowerCaseTitle
     content
     createdByID
     createdBy {
@@ -7395,6 +7592,11 @@ export const getTerriiCommunityPost = /* GraphQL */ `query GetTerriiCommunityPos
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -7423,19 +7625,34 @@ export const getTerriiCommunityPost = /* GraphQL */ `query GetTerriiCommunityPos
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
     }
+    category
     media
     tags
     likes
+    heartCount
+    viewCount
+    commentCount
     comments {
       items {
         id
         content
         createdByID
         postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -7446,6 +7663,62 @@ export const getTerriiCommunityPost = /* GraphQL */ `query GetTerriiCommunityPos
     isPinned
     isAnnouncement
     mode
+    status
+    requiresApproval
+    approvedAt
+    approvedByID
+    approvedBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    isDeleted
     createdAt
     updatedAt
     __typename
@@ -7467,6 +7740,8 @@ export const listTerriiCommunityPosts = /* GraphQL */ `query ListTerriiCommunity
   ) {
     items {
       id
+      title
+      lowerCaseTitle
       content
       createdByID
       createdBy {
@@ -7490,13 +7765,22 @@ export const listTerriiCommunityPosts = /* GraphQL */ `query ListTerriiCommunity
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
       }
+      category
       media
       tags
       likes
+      heartCount
+      viewCount
+      commentCount
       comments {
         nextToken
         __typename
@@ -7504,6 +7788,22 @@ export const listTerriiCommunityPosts = /* GraphQL */ `query ListTerriiCommunity
       isPinned
       isAnnouncement
       mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
       createdAt
       updatedAt
       __typename
@@ -7515,6 +7815,204 @@ export const listTerriiCommunityPosts = /* GraphQL */ `query ListTerriiCommunity
 ` as GeneratedQuery<
   APITypes.ListTerriiCommunityPostsQueryVariables,
   APITypes.ListTerriiCommunityPostsQuery
+>;
+export const getTerriiCommunityPostLike = /* GraphQL */ `query GetTerriiCommunityPostLike($id: ID!) {
+  getTerriiCommunityPostLike(id: $id) {
+    id
+    postID
+    post {
+      id
+      title
+      lowerCaseTitle
+      content
+      createdByID
+      createdBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      category
+      media
+      tags
+      likes
+      heartCount
+      viewCount
+      commentCount
+      comments {
+        nextToken
+        __typename
+      }
+      isPinned
+      isAnnouncement
+      mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
+      createdAt
+      updatedAt
+      __typename
+    }
+    userProfileID
+    userProfile {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.GetTerriiCommunityPostLikeQueryVariables,
+  APITypes.GetTerriiCommunityPostLikeQuery
+>;
+export const listTerriiCommunityPostLikes = /* GraphQL */ `query ListTerriiCommunityPostLikes(
+  $filter: ModelTerriiCommunityPostLikeFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listTerriiCommunityPostLikes(
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+  ) {
+    items {
+      id
+      postID
+      post {
+        id
+        title
+        lowerCaseTitle
+        content
+        createdByID
+        careHomeID
+        category
+        media
+        tags
+        likes
+        heartCount
+        viewCount
+        commentCount
+        isPinned
+        isAnnouncement
+        mode
+        status
+        requiresApproval
+        approvedAt
+        approvedByID
+        isDeleted
+        createdAt
+        updatedAt
+        __typename
+      }
+      userProfileID
+      userProfile {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListTerriiCommunityPostLikesQueryVariables,
+  APITypes.ListTerriiCommunityPostLikesQuery
 >;
 export const getTerriiCommunityComment = /* GraphQL */ `query GetTerriiCommunityComment($id: ID!) {
   getTerriiCommunityComment(id: $id) {
@@ -7557,6 +8055,11 @@ export const getTerriiCommunityComment = /* GraphQL */ `query GetTerriiCommunity
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -7570,6 +8073,8 @@ export const getTerriiCommunityComment = /* GraphQL */ `query GetTerriiCommunity
     postID
     post {
       id
+      title
+      lowerCaseTitle
       content
       createdByID
       createdBy {
@@ -7593,13 +8098,22 @@ export const getTerriiCommunityComment = /* GraphQL */ `query GetTerriiCommunity
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
       }
+      category
       media
       tags
       likes
+      heartCount
+      viewCount
+      commentCount
       comments {
         nextToken
         __typename
@@ -7607,10 +8121,51 @@ export const getTerriiCommunityComment = /* GraphQL */ `query GetTerriiCommunity
       isPinned
       isAnnouncement
       mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
       createdAt
       updatedAt
       __typename
     }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
     createdAt
     updatedAt
     __typename
@@ -7648,19 +8203,40 @@ export const listTerriiCommunityComments = /* GraphQL */ `query ListTerriiCommun
       postID
       post {
         id
+        title
+        lowerCaseTitle
         content
         createdByID
         careHomeID
+        category
         media
         tags
         likes
+        heartCount
+        viewCount
+        commentCount
         isPinned
         isAnnouncement
         mode
+        status
+        requiresApproval
+        approvedAt
+        approvedByID
+        isDeleted
         createdAt
         updatedAt
         __typename
       }
+      parentCommentID
+      replies {
+        nextToken
+        __typename
+      }
+      likeCount
+      replyCount
+      mentions
+      isDeleted
+      editedAt
       createdAt
       updatedAt
       __typename
@@ -7707,15 +8283,268 @@ export const commentsByCommunityPost = /* GraphQL */ `query CommentsByCommunityP
       postID
       post {
         id
+        title
+        lowerCaseTitle
         content
         createdByID
         careHomeID
+        category
         media
         tags
         likes
+        heartCount
+        viewCount
+        commentCount
         isPinned
         isAnnouncement
         mode
+        status
+        requiresApproval
+        approvedAt
+        approvedByID
+        isDeleted
+        createdAt
+        updatedAt
+        __typename
+      }
+      parentCommentID
+      replies {
+        nextToken
+        __typename
+      }
+      likeCount
+      replyCount
+      mentions
+      isDeleted
+      editedAt
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.CommentsByCommunityPostQueryVariables,
+  APITypes.CommentsByCommunityPostQuery
+>;
+export const communityCommentsByParent = /* GraphQL */ `query CommunityCommentsByParent(
+  $parentCommentID: ID!
+  $createdAt: ModelStringKeyConditionInput
+  $sortDirection: ModelSortDirection
+  $filter: ModelTerriiCommunityCommentFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  communityCommentsByParent(
+    parentCommentID: $parentCommentID
+    createdAt: $createdAt
+    sortDirection: $sortDirection
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+  ) {
+    items {
+      id
+      content
+      createdByID
+      createdBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      postID
+      post {
+        id
+        title
+        lowerCaseTitle
+        content
+        createdByID
+        careHomeID
+        category
+        media
+        tags
+        likes
+        heartCount
+        viewCount
+        commentCount
+        isPinned
+        isAnnouncement
+        mode
+        status
+        requiresApproval
+        approvedAt
+        approvedByID
+        isDeleted
+        createdAt
+        updatedAt
+        __typename
+      }
+      parentCommentID
+      replies {
+        nextToken
+        __typename
+      }
+      likeCount
+      replyCount
+      mentions
+      isDeleted
+      editedAt
+      createdAt
+      updatedAt
+      __typename
+    }
+    nextToken
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.CommunityCommentsByParentQueryVariables,
+  APITypes.CommunityCommentsByParentQuery
+>;
+export const getTerriiInviteCode = /* GraphQL */ `query GetTerriiInviteCode($id: ID!) {
+  getTerriiInviteCode(id: $id) {
+    id
+    code
+    familyMemberID
+    familyMember {
+      id
+      name
+      relationship
+      phone
+      email
+      residentID
+      resident {
+        id
+        name
+        room
+        photo
+        careHomeID
+        dateOfBirth
+        admissionDate
+        status
+        lastUpdate
+        unreadMessages
+        createdAt
+        updatedAt
+        terriiResidentMedicalInfoId
+        terriiResidentCarePreferencesId
+        terriiResidentEmergencyContactId
+        __typename
+      }
+      userID
+      isRegistered
+      createdAt
+      updatedAt
+      __typename
+    }
+    email
+    isUsed
+    usedAt
+    expiresAt
+    createdByID
+    createdBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.GetTerriiInviteCodeQueryVariables,
+  APITypes.GetTerriiInviteCodeQuery
+>;
+export const listTerriiInviteCodes = /* GraphQL */ `query ListTerriiInviteCodes(
+  $filter: ModelTerriiInviteCodeFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listTerriiInviteCodes(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      code
+      familyMemberID
+      familyMember {
+        id
+        name
+        relationship
+        phone
+        email
+        residentID
+        userID
+        isRegistered
+        createdAt
+        updatedAt
+        __typename
+      }
+      email
+      isUsed
+      usedAt
+      expiresAt
+      createdByID
+      createdBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
         createdAt
         updatedAt
         __typename
@@ -7729,8 +8558,8 @@ export const commentsByCommunityPost = /* GraphQL */ `query CommentsByCommunityP
   }
 }
 ` as GeneratedQuery<
-  APITypes.CommentsByCommunityPostQueryVariables,
-  APITypes.CommentsByCommunityPostQuery
+  APITypes.ListTerriiInviteCodesQueryVariables,
+  APITypes.ListTerriiInviteCodesQuery
 >;
 export const getMyFriendsUser = /* GraphQL */ `query GetMyFriendsUser($id: ID!) {
   getMyFriendsUser(id: $id) {

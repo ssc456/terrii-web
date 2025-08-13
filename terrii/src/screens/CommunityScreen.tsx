@@ -17,20 +17,26 @@ import { CreatePostDialog } from '../components/community/CreatePostDialog';
 import { BottomNav } from '../components/layout/BottomNav';
 import { S3Image } from '../components/ui/S3Image';
 import { toast } from 'sonner';
-import { communityCategories } from '../mock/community';
+import { communityCategories, CommunityPost } from '../mock/community';
+import { useAuth } from '../contexts/AuthContext';
 import { TerriiCommunityPost, TerriiCommunityComment, TerriiUserRole } from '../API';
 import { 
   listCommunityPosts, 
   createCommunityPost, 
   addCommunityComment, 
   togglePostLike, 
-  getCommunityPost 
+  getCareHome,
+  updateCareHome, // Added for persisting community settings
+  incrementCommunityPostViews,
+  toggleCommunityPostHeart,
+  incrementCommunityPostCommentCount
 } from '../lib/terriiApi';
-import { useAuth } from '../contexts/AuthContext';
-import type { CommunityPost } from '../mock/community';
+import { TerriiCommunityPostStatus } from '../API';
 
 export function CommunityScreen() {
   const { user, terriiProfile } = useAuth();
+  const staffRoles = ['CARE_STAFF','ADMIN','MANAGER'];
+  const isStaffUser = staffRoles.includes(terriiProfile?.role as any);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
@@ -48,13 +54,54 @@ export function CommunityScreen() {
     replies: true,
     mentions: true
   });
+  const [careHomeSettings, setCareHomeSettings] = useState<any>(null);
+  // Local editable settings (initialized from careHomeSettings when loaded)
+  const [communityMode, setCommunityMode] = useState<'NOTICE_BOARD' | 'TWO_WAY'>('NOTICE_BOARD');
+  const [allowFamilyPosts, setAllowFamilyPosts] = useState(true);
+  const [requireFamilyPostApproval, setRequireFamilyPostApproval] = useState(false);
+  const [allowPostComments, setAllowPostComments] = useState(true);
+  const [allowPostReactions, setAllowPostReactions] = useState(true);
+  // Persist helper declared here so it's in scope
+  const persistCommunitySettings = async (partial: any) => {
+    if (!terriiProfile?.careHomeID) return;
+    try {
+      const updated = await updateCareHome(terriiProfile.careHomeID, {
+        communityMode,
+        allowFamilyPosts,
+        requireFamilyPostApproval,
+        allowPostComments,
+        allowPostReactions,
+        ...partial
+      });
+      setCareHomeSettings(updated);
+      if (partial.communityMode) {
+        setCommunityMode(partial.communityMode);
+        setIsNoticeBoardMode(partial.communityMode === 'NOTICE_BOARD');
+      }
+    } catch (e) {
+      console.error('Failed to persist community settings', e);
+    }
+  };
 
   // Determine user role
-  const userRole: 'staff' | 'family' = terriiProfile?.role === 'STAFF' ? 'staff' : 'family';
+  const userRole: 'staff' | 'family' = isStaffUser ? 'staff' : 'family';
 
   // Load community posts from backend
   useEffect(() => {
     loadCommunityPosts();
+  }, [terriiProfile?.careHomeID]);
+
+  // Load care home settings
+  useEffect(() => {
+    if (terriiProfile?.careHomeID) {
+      (async () => {
+        const careHome = await getCareHome(terriiProfile.careHomeID);
+        setCareHomeSettings(careHome);
+        if (careHome?.communityMode) {
+          setIsNoticeBoardMode(careHome.communityMode === 'NOTICE_BOARD');
+        }
+      })();
+    }
   }, [terriiProfile?.careHomeID]);
 
   const loadCommunityPosts = async () => {
@@ -75,12 +122,28 @@ export function CommunityScreen() {
   };
 
   const transformBackendPost = (backendPost: any): CommunityPost => {
+    // Map backend enum status to UI status keys
+    const rawStatus = backendPost.status as TerriiCommunityPostStatus | null;
+    let uiStatus: CommunityPost['status'] = 'published';
+    if (rawStatus === TerriiCommunityPostStatus.PENDING) uiStatus = 'pending_approval';
+    if (rawStatus === TerriiCommunityPostStatus.REJECTED) uiStatus = 'rejected';
+    if (rawStatus === TerriiCommunityPostStatus.ARCHIVED) uiStatus = 'archived';
+    
     const author = backendPost.createdBy;
     const isStaff = author?.role === TerriiUserRole.CARE_STAFF || author?.role === TerriiUserRole.ADMIN || author?.role === TerriiUserRole.MANAGER;
     
+    const derivedTitle = (backendPost.title || '').trim()
+      ? backendPost.title.trim()
+      : (backendPost.content || '').slice(0, 80) + ((backendPost.content || '').length > 80 ? '...' : '');
+
+    const heartCount = backendPost.heartCount || 0;
+    const likeCount = backendPost.likes || 0;
+    const viewCount = backendPost.viewCount || 0;
+    const category = backendPost.category || 'general';
+    
     return {
       id: backendPost.id,
-      title: backendPost.content.slice(0, 50) + (backendPost.content.length > 50 ? '...' : ''),
+      title: derivedTitle,
       content: backendPost.content,
       author: {
         id: author?.id || 'unknown',
@@ -92,17 +155,17 @@ export function CommunityScreen() {
         isStaff: isStaff
       },
       timestamp: new Date(backendPost.createdAt),
-      category: 'general', // Default category - could be enhanced with backend field
+      category,
       isPinned: backendPost.isPinned || false,
-      status: backendPost.isPinned ? 'published' as const : 'published' as const,
-      replies: [], // Comments would need separate loading
+      status: uiStatus,
+      replies: [],
       reactions: {
         likes: {
-          count: backendPost.likes || 0,
+          count: likeCount,
           users: []
         },
         hearts: {
-          count: 0,
+          count: heartCount,
           users: []
         },
         hasLiked: false,
@@ -115,11 +178,11 @@ export function CommunityScreen() {
         .map((mediaKey: string, index: number) => ({
           id: `${backendPost.id}_${index}`,
           type: 'image' as const,
-          url: mediaKey, // This is S3 key, will be handled by S3Image component
+          url: mediaKey,
           name: `image_${index}.jpg`
         })),
-      views: 0, // Could be enhanced with backend view tracking
-      reportCount: 0, // Could be enhanced with backend reporting system
+      views: viewCount,
+      reportCount: 0,
       media: (backendPost.media || []).filter((mediaKey: string | null): mediaKey is string => mediaKey !== null),
       isAnnouncement: backendPost.isAnnouncement || false
     };
@@ -142,12 +205,21 @@ export function CommunityScreen() {
 
   const handlePostClick = (postId: string) => {
     console.log(`Viewing post: ${postId}`);
-    // Navigate to post detail in a real implementation
+    incrementCommunityPostViews(postId).catch(()=>{});
   };
 
-  const handlePostAction = (postId: string, action: string) => {
+  const handlePostAction = async (postId: string, action: string) => {
     console.log(`Action ${action} on post: ${postId}`);
-    
+    if (action === 'approve' && terriiProfile?.id) {
+      // approval functionality not implemented yet
+      setPosts(posts.map(p => p.id === postId ? { ...p, status: 'published' } : p));
+      return;
+    }
+    if (action === 'reject' && terriiProfile?.id) {
+      // rejection functionality not implemented yet
+      setPosts(posts.map(p => p.id === postId ? { ...p, status: 'rejected' } : p));
+      return;
+    }
     if (action === 'delete') {
       setPosts(posts.filter(post => post.id !== postId));
     } else if (action === 'pin') {
@@ -172,24 +244,34 @@ export function CommunityScreen() {
     }
 
     try {
-      // Create post in backend
+      const familyRequiresApproval = requireFamilyPostApproval;
+      const initialStatus = isStaffUser ? TerriiCommunityPostStatus.PUBLISHED : (familyRequiresApproval ? TerriiCommunityPostStatus.PENDING : TerriiCommunityPostStatus.PUBLISHED);
+
       const newBackendPost = await createCommunityPost({
+        title: postData.title?.trim() || null,
+        lowerCaseTitle: postData.title?.trim().toLowerCase() || null,
         content: postData.content,
+        category: postData.category || 'general',
         createdByID: terriiProfile.id,
         careHomeID: terriiProfile.careHomeID,
         media: postData.attachments?.map((att: any) => att.url) || [],
         tags: postData.tags || [],
         isPinned: postData.isPinned || false,
         isAnnouncement: postData.isAnnouncement || false,
-        mode: userRole === 'staff' ? 'TWO_WAY' : 'NOTICE_BOARD',
-        likes: 0
+        mode: communityMode,
+        likes: 0,
+        heartCount: 0,
+        viewCount: 0,
+        commentCount: 0,
+        status: initialStatus,
+        requiresApproval: initialStatus === TerriiCommunityPostStatus.PENDING,
+        isDeleted: false
       });
 
-      // Transform and add to local state
       const newPost = transformBackendPost(newBackendPost);
       setPosts([newPost, ...posts]);
       setIsCreateDialogOpen(false);
-      toast.success('Post created successfully');
+      toast.success(initialStatus === TerriiCommunityPostStatus.PENDING ? 'Post submitted for approval' : 'Post created successfully');
     } catch (error) {
       console.error('Failed to create post:', error);
       toast.error('Failed to create post');
@@ -237,6 +319,26 @@ export function CommunityScreen() {
     }
   };
 
+  // Handle post heart/unheart
+  const handleHeartPost = async (postId: string) => {
+    try {
+      setPosts(prev => prev.map(p => p.id === postId ? {
+        ...p,
+        reactions: {
+          ...p.reactions,
+            hearts: {
+              ...p.reactions.hearts,
+              count: p.reactions.hasHearted ? p.reactions.hearts.count - 1 : p.reactions.hearts.count + 1
+            },
+            hasHearted: !p.reactions.hasHearted
+        }
+      } : p));
+      await toggleCommunityPostHeart(postId, posts.find(p=>p.id===postId)?.reactions.hasHearted ? 'unheart' : 'heart');
+    } catch (e) {
+      console.error('Heart toggle failed', e);
+    }
+  };
+
   // Handle post comment
   const handleCommentPost = async (postId: string, content: string) => {
     if (!terriiProfile?.id) {
@@ -251,7 +353,6 @@ export function CommunityScreen() {
         postID: postId
       });
 
-      // Update local state to show new comment
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post.id === postId 
@@ -264,9 +365,9 @@ export function CommunityScreen() {
                     content: comment.content,
                     author: {
                       id: terriiProfile.id,
-                      name: terriiProfile.userID || 'You', // You might want to get actual name
-                      role: terriiProfile.role === 'STAFF' ? 'Staff' : 'Family Member',
-                      isStaff: terriiProfile.role === 'STAFF',
+                      name: terriiProfile.userID || 'You',
+                      role: isStaffUser ? 'Staff' : 'Family Member',
+                      isStaff: isStaffUser,
                       photo: terriiProfile.profilePicture || undefined
                     },
                     timestamp: new Date(comment.createdAt),
@@ -277,6 +378,7 @@ export function CommunityScreen() {
             : post
         )
       );
+      await incrementCommunityPostCommentCount(postId).catch(()=>{});
       toast.success('Comment added successfully');
     } catch (error) {
       console.error('Failed to add comment:', error);
@@ -312,14 +414,13 @@ export function CommunityScreen() {
 
   const filteredPosts = posts
     .filter(post => {
-      // Filter by search query
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
-          post.title.toLowerCase().includes(query) ||
-          post.content.toLowerCase().includes(query) ||
+          (post.title.toLowerCase().includes(query)) ||
+          (post.content.toLowerCase().includes(query)) ||
           post.author.name.toLowerCase().includes(query) ||
-          post.tags.some(tag => tag.toLowerCase().includes(query))
+          post.tags.some((tag: string) => tag.toLowerCase().includes(query))
         );
       }
       return true;
@@ -596,29 +697,33 @@ export function CommunityScreen() {
                     <div className="flex items-center space-x-2">
                       <span className="text-sm text-terrii-text-secondary">Notice Board</span>
                       <Switch
-                        checked={!isNoticeBoardMode}
-                        onCheckedChange={(checked) => setIsNoticeBoardMode(!checked)}
+                        checked={communityMode === 'TWO_WAY'}
+                        onCheckedChange={(checked) => {
+                          const mode = checked ? 'TWO_WAY' : 'NOTICE_BOARD';
+                          setCommunityMode(mode);
+                          setIsNoticeBoardMode(mode === 'NOTICE_BOARD');
+                          persistCommunitySettings({ communityMode: mode });
+                        }}
                       />
                       <span className="text-sm text-terrii-text-secondary">Two-Way</span>
                     </div>
                   </div>
-                  
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label>Require post approval</Label>
-                      <Switch defaultChecked />
+                      <Label>Allow family posts</Label>
+                      <Switch checked={allowFamilyPosts} onCheckedChange={(v)=>{setAllowFamilyPosts(v);persistCommunitySettings({allowFamilyPosts:v});}} />
                     </div>
                     <div className="flex items-center justify-between">
-                      <Label>Allow file attachments</Label>
-                      <Switch defaultChecked />
+                      <Label>Require family post approval</Label>
+                      <Switch checked={requireFamilyPostApproval} onCheckedChange={(v)=>{setRequireFamilyPostApproval(v);persistCommunitySettings({requireFamilyPostApproval:v});}} />
                     </div>
                     <div className="flex items-center justify-between">
-                      <Label>Can reply to posts</Label>
-                      <Switch defaultChecked />
+                      <Label>Allow comments</Label>
+                      <Switch checked={allowPostComments} onCheckedChange={(v)=>{setAllowPostComments(v);persistCommunitySettings({allowPostComments:v});}} />
                     </div>
                     <div className="flex items-center justify-between">
-                      <Label>Can react to posts</Label>
-                      <Switch defaultChecked />
+                      <Label>Allow reactions</Label>
+                      <Switch checked={allowPostReactions} onCheckedChange={(v)=>{setAllowPostReactions(v);persistCommunitySettings({allowPostReactions:v});}} />
                     </div>
                   </div>
                 </div>
@@ -686,8 +791,8 @@ export function CommunityScreen() {
             </div>
           )}
           
-          {(userRole === 'staff' || !isNoticeBoardMode) && (
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
+          {(userRole === 'staff' || (!isNoticeBoardMode && allowFamilyPosts)) && (
+            <Button onClick={() => { if(isStaffUser || allowFamilyPosts){ setIsCreateDialogOpen(true);} }}>
               <Plus className="h-4 w-4 mr-2" />
               {userRole === 'staff' 
                 ? (isNoticeBoardMode ? 'Post Notice' : 'New Post') 
@@ -845,6 +950,7 @@ export function CommunityScreen() {
               onClick={handlePostClick}
               onAction={handlePostAction}
               onLike={handleLikePost}
+              onHeart={handleHeartPost}
               onComment={handleCommentPost}
               showCheckbox={userRole === 'staff' && selectedPosts.length > 0}
               isSelected={selectedPosts.includes(post.id)}

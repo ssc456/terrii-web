@@ -22,7 +22,7 @@ export interface CommunityPost {
   timestamp: Date;
   category: string;
   isPinned: boolean;
-  status: 'published' | 'pending_approval' | 'archived';
+  status: 'published' | 'pending_approval' | 'archived' | 'rejected';
   replies: {
     id: string;
     content: string;

@@ -7389,6 +7389,11 @@ export const onCreateUser = /* GraphQL */ `subscription OnCreateUser($filter: Mo
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -7500,6 +7505,11 @@ export const onUpdateUser = /* GraphQL */ `subscription OnUpdateUser($filter: Mo
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -7611,6 +7621,11 @@ export const onDeleteUser = /* GraphQL */ `subscription OnDeleteUser($filter: Mo
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -8862,6 +8877,11 @@ export const onCreateTerriiCareHome = /* GraphQL */ `subscription OnCreateTerrii
       nextToken
       __typename
     }
+    communityMode
+    allowFamilyPosts
+    requireFamilyPostApproval
+    allowPostReactions
+    allowPostComments
     createdAt
     updatedAt
     __typename
@@ -8920,6 +8940,11 @@ export const onUpdateTerriiCareHome = /* GraphQL */ `subscription OnUpdateTerrii
       nextToken
       __typename
     }
+    communityMode
+    allowFamilyPosts
+    requireFamilyPostApproval
+    allowPostReactions
+    allowPostComments
     createdAt
     updatedAt
     __typename
@@ -8978,6 +9003,11 @@ export const onDeleteTerriiCareHome = /* GraphQL */ `subscription OnDeleteTerrii
       nextToken
       __typename
     }
+    communityMode
+    allowFamilyPosts
+    requireFamilyPostApproval
+    allowPostReactions
+    allowPostComments
     createdAt
     updatedAt
     __typename
@@ -9057,6 +9087,11 @@ export const onCreateTerriiUserProfile = /* GraphQL */ `subscription OnCreateTer
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -9142,6 +9177,11 @@ export const onUpdateTerriiUserProfile = /* GraphQL */ `subscription OnUpdateTer
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -9227,6 +9267,11 @@ export const onDeleteTerriiUserProfile = /* GraphQL */ `subscription OnDeleteTer
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -9268,6 +9313,11 @@ export const onCreateTerriiResident = /* GraphQL */ `subscription OnCreateTerrii
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -9284,6 +9334,8 @@ export const onCreateTerriiResident = /* GraphQL */ `subscription OnCreateTerrii
         phone
         email
         residentID
+        userID
+        isRegistered
         createdAt
         updatedAt
         __typename
@@ -9436,6 +9488,11 @@ export const onUpdateTerriiResident = /* GraphQL */ `subscription OnUpdateTerrii
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -9452,6 +9509,8 @@ export const onUpdateTerriiResident = /* GraphQL */ `subscription OnUpdateTerrii
         phone
         email
         residentID
+        userID
+        isRegistered
         createdAt
         updatedAt
         __typename
@@ -9604,6 +9663,11 @@ export const onDeleteTerriiResident = /* GraphQL */ `subscription OnDeleteTerrii
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -9620,6 +9684,8 @@ export const onDeleteTerriiResident = /* GraphQL */ `subscription OnDeleteTerrii
         phone
         email
         residentID
+        userID
+        isRegistered
         createdAt
         updatedAt
         __typename
@@ -9771,6 +9837,11 @@ export const onCreateTerriiResidentFamily = /* GraphQL */ `subscription OnCreate
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -9828,6 +9899,8 @@ export const onCreateTerriiResidentFamily = /* GraphQL */ `subscription OnCreate
       terriiResidentEmergencyContactId
       __typename
     }
+    userID
+    isRegistered
     createdAt
     updatedAt
     __typename
@@ -9862,6 +9935,11 @@ export const onUpdateTerriiResidentFamily = /* GraphQL */ `subscription OnUpdate
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -9919,6 +9997,8 @@ export const onUpdateTerriiResidentFamily = /* GraphQL */ `subscription OnUpdate
       terriiResidentEmergencyContactId
       __typename
     }
+    userID
+    isRegistered
     createdAt
     updatedAt
     __typename
@@ -9953,6 +10033,11 @@ export const onDeleteTerriiResidentFamily = /* GraphQL */ `subscription OnDelete
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10010,6 +10095,8 @@ export const onDeleteTerriiResidentFamily = /* GraphQL */ `subscription OnDelete
       terriiResidentEmergencyContactId
       __typename
     }
+    userID
+    isRegistered
     createdAt
     updatedAt
     __typename
@@ -10058,6 +10145,11 @@ export const onCreateTerriiResidentMedical = /* GraphQL */ `subscription OnCreat
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10163,6 +10255,11 @@ export const onUpdateTerriiResidentMedical = /* GraphQL */ `subscription OnUpdat
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10268,6 +10365,11 @@ export const onDeleteTerriiResidentMedical = /* GraphQL */ `subscription OnDelet
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10512,6 +10614,11 @@ export const onCreateTerriiResidentCarePreferences = /* GraphQL */ `subscription
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10603,6 +10710,11 @@ export const onUpdateTerriiResidentCarePreferences = /* GraphQL */ `subscription
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10694,6 +10806,11 @@ export const onDeleteTerriiResidentCarePreferences = /* GraphQL */ `subscription
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10785,6 +10902,11 @@ export const onCreateTerriiResidentActivity = /* GraphQL */ `subscription OnCrea
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10876,6 +10998,11 @@ export const onUpdateTerriiResidentActivity = /* GraphQL */ `subscription OnUpda
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -10967,6 +11094,11 @@ export const onDeleteTerriiResidentActivity = /* GraphQL */ `subscription OnDele
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11058,6 +11190,11 @@ export const onCreateTerriiResidentEmergencyContact = /* GraphQL */ `subscriptio
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11149,6 +11286,11 @@ export const onUpdateTerriiResidentEmergencyContact = /* GraphQL */ `subscriptio
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11240,6 +11382,11 @@ export const onDeleteTerriiResidentEmergencyContact = /* GraphQL */ `subscriptio
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11327,6 +11474,11 @@ export const onCreateTerriiMessageThread = /* GraphQL */ `subscription OnCreateT
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11459,6 +11611,11 @@ export const onUpdateTerriiMessageThread = /* GraphQL */ `subscription OnUpdateT
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11591,6 +11748,11 @@ export const onDeleteTerriiMessageThread = /* GraphQL */ `subscription OnDeleteT
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11943,6 +12105,11 @@ export const onCreateTerriiMoment = /* GraphQL */ `subscription OnCreateTerriiMo
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -11969,6 +12136,11 @@ export const onCreateTerriiMoment = /* GraphQL */ `subscription OnCreateTerriiMo
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12044,6 +12216,11 @@ export const onCreateTerriiMoment = /* GraphQL */ `subscription OnCreateTerriiMo
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -12057,6 +12234,12 @@ export const onCreateTerriiMoment = /* GraphQL */ `subscription OnCreateTerriiMo
         content
         createdByID
         momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -12117,6 +12300,11 @@ export const onUpdateTerriiMoment = /* GraphQL */ `subscription OnUpdateTerriiMo
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12143,6 +12331,11 @@ export const onUpdateTerriiMoment = /* GraphQL */ `subscription OnUpdateTerriiMo
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12218,6 +12411,11 @@ export const onUpdateTerriiMoment = /* GraphQL */ `subscription OnUpdateTerriiMo
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -12231,6 +12429,12 @@ export const onUpdateTerriiMoment = /* GraphQL */ `subscription OnUpdateTerriiMo
         content
         createdByID
         momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -12291,6 +12495,11 @@ export const onDeleteTerriiMoment = /* GraphQL */ `subscription OnDeleteTerriiMo
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12317,6 +12526,11 @@ export const onDeleteTerriiMoment = /* GraphQL */ `subscription OnDeleteTerriiMo
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12392,6 +12606,11 @@ export const onDeleteTerriiMoment = /* GraphQL */ `subscription OnDeleteTerriiMo
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
@@ -12405,6 +12624,12 @@ export const onDeleteTerriiMoment = /* GraphQL */ `subscription OnDeleteTerriiMo
         content
         createdByID
         momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -12465,6 +12690,11 @@ export const onCreateTerriiMomentComment = /* GraphQL */ `subscription OnCreateT
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12520,6 +12750,11 @@ export const onCreateTerriiMomentComment = /* GraphQL */ `subscription OnCreateT
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12536,6 +12771,31 @@ export const onCreateTerriiMomentComment = /* GraphQL */ `subscription OnCreateT
       updatedAt
       __typename
     }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
     createdAt
     updatedAt
     __typename
@@ -12588,6 +12848,11 @@ export const onUpdateTerriiMomentComment = /* GraphQL */ `subscription OnUpdateT
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12643,6 +12908,11 @@ export const onUpdateTerriiMomentComment = /* GraphQL */ `subscription OnUpdateT
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12659,6 +12929,31 @@ export const onUpdateTerriiMomentComment = /* GraphQL */ `subscription OnUpdateT
       updatedAt
       __typename
     }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
     createdAt
     updatedAt
     __typename
@@ -12711,6 +13006,11 @@ export const onDeleteTerriiMomentComment = /* GraphQL */ `subscription OnDeleteT
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12766,6 +13066,11 @@ export const onDeleteTerriiMomentComment = /* GraphQL */ `subscription OnDeleteT
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12782,6 +13087,31 @@ export const onDeleteTerriiMomentComment = /* GraphQL */ `subscription OnDeleteT
       updatedAt
       __typename
     }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        momentID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
     createdAt
     updatedAt
     __typename
@@ -12796,6 +13126,8 @@ export const onCreateTerriiCommunityPost = /* GraphQL */ `subscription OnCreateT
 ) {
   onCreateTerriiCommunityPost(filter: $filter) {
     id
+    title
+    lowerCaseTitle
     content
     createdByID
     createdBy {
@@ -12834,6 +13166,11 @@ export const onCreateTerriiCommunityPost = /* GraphQL */ `subscription OnCreateT
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12862,19 +13199,34 @@ export const onCreateTerriiCommunityPost = /* GraphQL */ `subscription OnCreateT
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
     }
+    category
     media
     tags
     likes
+    heartCount
+    viewCount
+    commentCount
     comments {
       items {
         id
         content
         createdByID
         postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -12885,6 +13237,62 @@ export const onCreateTerriiCommunityPost = /* GraphQL */ `subscription OnCreateT
     isPinned
     isAnnouncement
     mode
+    status
+    requiresApproval
+    approvedAt
+    approvedByID
+    approvedBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    isDeleted
     createdAt
     updatedAt
     __typename
@@ -12899,6 +13307,8 @@ export const onUpdateTerriiCommunityPost = /* GraphQL */ `subscription OnUpdateT
 ) {
   onUpdateTerriiCommunityPost(filter: $filter) {
     id
+    title
+    lowerCaseTitle
     content
     createdByID
     createdBy {
@@ -12937,6 +13347,11 @@ export const onUpdateTerriiCommunityPost = /* GraphQL */ `subscription OnUpdateT
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -12965,19 +13380,34 @@ export const onUpdateTerriiCommunityPost = /* GraphQL */ `subscription OnUpdateT
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
     }
+    category
     media
     tags
     likes
+    heartCount
+    viewCount
+    commentCount
     comments {
       items {
         id
         content
         createdByID
         postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -12988,6 +13418,62 @@ export const onUpdateTerriiCommunityPost = /* GraphQL */ `subscription OnUpdateT
     isPinned
     isAnnouncement
     mode
+    status
+    requiresApproval
+    approvedAt
+    approvedByID
+    approvedBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    isDeleted
     createdAt
     updatedAt
     __typename
@@ -13002,6 +13488,8 @@ export const onDeleteTerriiCommunityPost = /* GraphQL */ `subscription OnDeleteT
 ) {
   onDeleteTerriiCommunityPost(filter: $filter) {
     id
+    title
+    lowerCaseTitle
     content
     createdByID
     createdBy {
@@ -13040,6 +13528,11 @@ export const onDeleteTerriiCommunityPost = /* GraphQL */ `subscription OnDeleteT
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -13068,19 +13561,34 @@ export const onDeleteTerriiCommunityPost = /* GraphQL */ `subscription OnDeleteT
         nextToken
         __typename
       }
+      communityMode
+      allowFamilyPosts
+      requireFamilyPostApproval
+      allowPostReactions
+      allowPostComments
       createdAt
       updatedAt
       __typename
     }
+    category
     media
     tags
     likes
+    heartCount
+    viewCount
+    commentCount
     comments {
       items {
         id
         content
         createdByID
         postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
         createdAt
         updatedAt
         __typename
@@ -13091,6 +13599,62 @@ export const onDeleteTerriiCommunityPost = /* GraphQL */ `subscription OnDeleteT
     isPinned
     isAnnouncement
     mode
+    status
+    requiresApproval
+    approvedAt
+    approvedByID
+    approvedBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    isDeleted
     createdAt
     updatedAt
     __typename
@@ -13099,6 +13663,417 @@ export const onDeleteTerriiCommunityPost = /* GraphQL */ `subscription OnDeleteT
 ` as GeneratedSubscription<
   APITypes.OnDeleteTerriiCommunityPostSubscriptionVariables,
   APITypes.OnDeleteTerriiCommunityPostSubscription
+>;
+export const onCreateTerriiCommunityPostLike = /* GraphQL */ `subscription OnCreateTerriiCommunityPostLike(
+  $filter: ModelSubscriptionTerriiCommunityPostLikeFilterInput
+) {
+  onCreateTerriiCommunityPostLike(filter: $filter) {
+    id
+    postID
+    post {
+      id
+      title
+      lowerCaseTitle
+      content
+      createdByID
+      createdBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      category
+      media
+      tags
+      likes
+      heartCount
+      viewCount
+      commentCount
+      comments {
+        nextToken
+        __typename
+      }
+      isPinned
+      isAnnouncement
+      mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
+      createdAt
+      updatedAt
+      __typename
+    }
+    userProfileID
+    userProfile {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreateTerriiCommunityPostLikeSubscriptionVariables,
+  APITypes.OnCreateTerriiCommunityPostLikeSubscription
+>;
+export const onUpdateTerriiCommunityPostLike = /* GraphQL */ `subscription OnUpdateTerriiCommunityPostLike(
+  $filter: ModelSubscriptionTerriiCommunityPostLikeFilterInput
+) {
+  onUpdateTerriiCommunityPostLike(filter: $filter) {
+    id
+    postID
+    post {
+      id
+      title
+      lowerCaseTitle
+      content
+      createdByID
+      createdBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      category
+      media
+      tags
+      likes
+      heartCount
+      viewCount
+      commentCount
+      comments {
+        nextToken
+        __typename
+      }
+      isPinned
+      isAnnouncement
+      mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
+      createdAt
+      updatedAt
+      __typename
+    }
+    userProfileID
+    userProfile {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateTerriiCommunityPostLikeSubscriptionVariables,
+  APITypes.OnUpdateTerriiCommunityPostLikeSubscription
+>;
+export const onDeleteTerriiCommunityPostLike = /* GraphQL */ `subscription OnDeleteTerriiCommunityPostLike(
+  $filter: ModelSubscriptionTerriiCommunityPostLikeFilterInput
+) {
+  onDeleteTerriiCommunityPostLike(filter: $filter) {
+    id
+    postID
+    post {
+      id
+      title
+      lowerCaseTitle
+      content
+      createdByID
+      createdBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      category
+      media
+      tags
+      likes
+      heartCount
+      viewCount
+      commentCount
+      comments {
+        nextToken
+        __typename
+      }
+      isPinned
+      isAnnouncement
+      mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
+      createdAt
+      updatedAt
+      __typename
+    }
+    userProfileID
+    userProfile {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteTerriiCommunityPostLikeSubscriptionVariables,
+  APITypes.OnDeleteTerriiCommunityPostLikeSubscription
 >;
 export const onCreateTerriiCommunityComment = /* GraphQL */ `subscription OnCreateTerriiCommunityComment(
   $filter: ModelSubscriptionTerriiCommunityCommentFilterInput
@@ -13143,6 +14118,11 @@ export const onCreateTerriiCommunityComment = /* GraphQL */ `subscription OnCrea
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -13156,6 +14136,8 @@ export const onCreateTerriiCommunityComment = /* GraphQL */ `subscription OnCrea
     postID
     post {
       id
+      title
+      lowerCaseTitle
       content
       createdByID
       createdBy {
@@ -13179,13 +14161,22 @@ export const onCreateTerriiCommunityComment = /* GraphQL */ `subscription OnCrea
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
       }
+      category
       media
       tags
       likes
+      heartCount
+      viewCount
+      commentCount
       comments {
         nextToken
         __typename
@@ -13193,10 +14184,51 @@ export const onCreateTerriiCommunityComment = /* GraphQL */ `subscription OnCrea
       isPinned
       isAnnouncement
       mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
       createdAt
       updatedAt
       __typename
     }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
     createdAt
     updatedAt
     __typename
@@ -13249,6 +14281,11 @@ export const onUpdateTerriiCommunityComment = /* GraphQL */ `subscription OnUpda
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -13262,6 +14299,8 @@ export const onUpdateTerriiCommunityComment = /* GraphQL */ `subscription OnUpda
     postID
     post {
       id
+      title
+      lowerCaseTitle
       content
       createdByID
       createdBy {
@@ -13285,13 +14324,22 @@ export const onUpdateTerriiCommunityComment = /* GraphQL */ `subscription OnUpda
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
       }
+      category
       media
       tags
       likes
+      heartCount
+      viewCount
+      commentCount
       comments {
         nextToken
         __typename
@@ -13299,10 +14347,51 @@ export const onUpdateTerriiCommunityComment = /* GraphQL */ `subscription OnUpda
       isPinned
       isAnnouncement
       mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
       createdAt
       updatedAt
       __typename
     }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
     createdAt
     updatedAt
     __typename
@@ -13355,6 +14444,11 @@ export const onDeleteTerriiCommunityComment = /* GraphQL */ `subscription OnDele
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
@@ -13368,6 +14462,8 @@ export const onDeleteTerriiCommunityComment = /* GraphQL */ `subscription OnDele
     postID
     post {
       id
+      title
+      lowerCaseTitle
       content
       createdByID
       createdBy {
@@ -13391,13 +14487,22 @@ export const onDeleteTerriiCommunityComment = /* GraphQL */ `subscription OnDele
         phoneNumber
         email
         website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
         createdAt
         updatedAt
         __typename
       }
+      category
       media
       tags
       likes
+      heartCount
+      viewCount
+      commentCount
       comments {
         nextToken
         __typename
@@ -13405,6 +14510,150 @@ export const onDeleteTerriiCommunityComment = /* GraphQL */ `subscription OnDele
       isPinned
       isAnnouncement
       mode
+      status
+      requiresApproval
+      approvedAt
+      approvedByID
+      approvedBy {
+        id
+        userID
+        role
+        careHomeID
+        lastLogin
+        profilePicture
+        createdAt
+        updatedAt
+        __typename
+      }
+      isDeleted
+      createdAt
+      updatedAt
+      __typename
+    }
+    parentCommentID
+    replies {
+      items {
+        id
+        content
+        createdByID
+        postID
+        parentCommentID
+        likeCount
+        replyCount
+        mentions
+        isDeleted
+        editedAt
+        createdAt
+        updatedAt
+        __typename
+      }
+      nextToken
+      __typename
+    }
+    likeCount
+    replyCount
+    mentions
+    isDeleted
+    editedAt
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteTerriiCommunityCommentSubscriptionVariables,
+  APITypes.OnDeleteTerriiCommunityCommentSubscription
+>;
+export const onCreateTerriiInviteCode = /* GraphQL */ `subscription OnCreateTerriiInviteCode(
+  $filter: ModelSubscriptionTerriiInviteCodeFilterInput
+) {
+  onCreateTerriiInviteCode(filter: $filter) {
+    id
+    code
+    familyMemberID
+    familyMember {
+      id
+      name
+      relationship
+      phone
+      email
+      residentID
+      resident {
+        id
+        name
+        room
+        photo
+        careHomeID
+        dateOfBirth
+        admissionDate
+        status
+        lastUpdate
+        unreadMessages
+        createdAt
+        updatedAt
+        terriiResidentMedicalInfoId
+        terriiResidentCarePreferencesId
+        terriiResidentEmergencyContactId
+        __typename
+      }
+      userID
+      isRegistered
+      createdAt
+      updatedAt
+      __typename
+    }
+    email
+    isUsed
+    usedAt
+    expiresAt
+    createdByID
+    createdBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
       createdAt
       updatedAt
       __typename
@@ -13415,8 +14664,214 @@ export const onDeleteTerriiCommunityComment = /* GraphQL */ `subscription OnDele
   }
 }
 ` as GeneratedSubscription<
-  APITypes.OnDeleteTerriiCommunityCommentSubscriptionVariables,
-  APITypes.OnDeleteTerriiCommunityCommentSubscription
+  APITypes.OnCreateTerriiInviteCodeSubscriptionVariables,
+  APITypes.OnCreateTerriiInviteCodeSubscription
+>;
+export const onUpdateTerriiInviteCode = /* GraphQL */ `subscription OnUpdateTerriiInviteCode(
+  $filter: ModelSubscriptionTerriiInviteCodeFilterInput
+) {
+  onUpdateTerriiInviteCode(filter: $filter) {
+    id
+    code
+    familyMemberID
+    familyMember {
+      id
+      name
+      relationship
+      phone
+      email
+      residentID
+      resident {
+        id
+        name
+        room
+        photo
+        careHomeID
+        dateOfBirth
+        admissionDate
+        status
+        lastUpdate
+        unreadMessages
+        createdAt
+        updatedAt
+        terriiResidentMedicalInfoId
+        terriiResidentCarePreferencesId
+        terriiResidentEmergencyContactId
+        __typename
+      }
+      userID
+      isRegistered
+      createdAt
+      updatedAt
+      __typename
+    }
+    email
+    isUsed
+    usedAt
+    expiresAt
+    createdByID
+    createdBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateTerriiInviteCodeSubscriptionVariables,
+  APITypes.OnUpdateTerriiInviteCodeSubscription
+>;
+export const onDeleteTerriiInviteCode = /* GraphQL */ `subscription OnDeleteTerriiInviteCode(
+  $filter: ModelSubscriptionTerriiInviteCodeFilterInput
+) {
+  onDeleteTerriiInviteCode(filter: $filter) {
+    id
+    code
+    familyMemberID
+    familyMember {
+      id
+      name
+      relationship
+      phone
+      email
+      residentID
+      resident {
+        id
+        name
+        room
+        photo
+        careHomeID
+        dateOfBirth
+        admissionDate
+        status
+        lastUpdate
+        unreadMessages
+        createdAt
+        updatedAt
+        terriiResidentMedicalInfoId
+        terriiResidentCarePreferencesId
+        terriiResidentEmergencyContactId
+        __typename
+      }
+      userID
+      isRegistered
+      createdAt
+      updatedAt
+      __typename
+    }
+    email
+    isUsed
+    usedAt
+    expiresAt
+    createdByID
+    createdBy {
+      id
+      userID
+      user {
+        id
+        name
+        status
+        image
+        userType
+        deleted
+        firstName
+        lastName
+        mobileNo
+        headerImage
+        pwdName
+        expoNotificationToken
+        nativeNotificationToken
+        postRegistrationComplete
+        additionalInformationComplete
+        lastActivity
+        createdAt
+        updatedAt
+        userTerriiProfileId
+        __typename
+      }
+      role
+      careHomeID
+      careHome {
+        id
+        name
+        address
+        city
+        postCode
+        phoneNumber
+        email
+        website
+        communityMode
+        allowFamilyPosts
+        requireFamilyPostApproval
+        allowPostReactions
+        allowPostComments
+        createdAt
+        updatedAt
+        __typename
+      }
+      lastLogin
+      profilePicture
+      createdAt
+      updatedAt
+      __typename
+    }
+    createdAt
+    updatedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteTerriiInviteCodeSubscriptionVariables,
+  APITypes.OnDeleteTerriiInviteCodeSubscription
 >;
 export const onCreateMyFriendsUser = /* GraphQL */ `subscription OnCreateMyFriendsUser(
   $filter: ModelSubscriptionMyFriendsUserFilterInput
